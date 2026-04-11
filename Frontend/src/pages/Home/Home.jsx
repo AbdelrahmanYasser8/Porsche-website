@@ -1,1 +1,2 @@
-import 'bootstrap/dist/css/bootstrap.min.css';
+import styles from './Home.module.css';
+
