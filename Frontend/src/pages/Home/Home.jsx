@@ -8,16 +8,17 @@ import suv from "../../assets/icons/suv car.jpg"
 import sport from "../../assets/icons/sport car.webp"
 import electric from "../../assets/icons/electric car.jpg"
 import sedan from "../../assets/icons/sedan car.jpg"
+import cayman from "../../assets/icons/718 caymans.png"
 const categories = [
-  { label: "SUV", img: suv, style: { width: "80%",height: "80%" } },
-  { label: "Sports", img: sport, style: { width: "80%",height: "80%" } },
-  { label: "Electric", img: electric, style: { width: "80%",height: "80%" } },
-  { label: "Sedan", img: sedan, style: { width: "80%",height: "80%" } },
+  { label: "SUV", img: suv},
+  { label: "Sports", img: sport },
+  { label: "Electric", img: electric },
+  { label: "Sedan", img: sedan },
 ];
 
 const models = [
   { name: "911", img: img911  },
-  { name: "Taycan", img: taycan },
+  { name: "718", img: cayman },
   { name: "Cayenne", img: cayenee },
 ];
 
