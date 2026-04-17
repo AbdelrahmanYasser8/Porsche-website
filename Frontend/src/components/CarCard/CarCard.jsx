@@ -6,27 +6,27 @@ import React from "react";
 export default function CarCard({ name, year, fuel, seats, price, image }) {
   return (
     <div className="col">
-    <div className="car-card bg-white rounded-3 border h-100 d-flex flex-column overflow-hidden">
+      <div className={`${styles.carCard} bg-white rounded-3 border h-100 d-flex flex-column overflow-hidden`}>
         <div className="p-3 pb-0">
-        <div className="car-name mb-2">{name}</div>
-        <div className="car-img-wrap rounded-2 mb-2">
+          <div className={`${styles.carName} mb-1 fw-bold fs-5`}>{name}</div>
+          <div className={`${styles.carImgWrap} rounded-2 mb-2`}>
             <img src={image} alt={name} />
-        </div>
-        <div className="d-flex justify-content-between mb-1" style={{ fontSize: "0.8rem", color: "#aaa" }}>
+          </div>
+          <div className="d-flex justify-content-between mb-1" style={{ fontSize: "0.8rem", color: "#666" }}>
             <span>{year}</span>
             <span>${price.toLocaleString()}</span>
-        </div>
-        <div className="d-flex justify-content-between mb-3" style={{ fontSize: "0.8rem", color: "#666" }}>
+          </div>
+          <div className="d-flex justify-content-between mb-3" style={{ fontSize: "0.8rem", color: "#666" }}>
             <span>⛽ {fuel}</span>
             <span>👤 {seats} seats</span>
+          </div>
         </div>
-        </div>
-        <div className="mt-auto">
-        <button className="configure-btn btn btn-dark w-100 rounded-0 rounded-bottom-3 py-2">
+        <div className="mt-auto d-flex justify-content-center">
+          <button className={`${styles.configureBtn} btn btn-dark rounded-2 py-2 mb-3`}>
             Configure
-        </button>
+          </button>
         </div>
-    </div>
+      </div>
     </div>
   );
 }

@@ -3,15 +3,21 @@ import "bootstrap/dist/css/bootstrap.min.css";
 import Navbar from '../../components/Navbar/Navbar';
 import Footer from '../../components/Footer/Footer';
 import CarCard from '../../components/CarCard/CarCard';
+import styles from './CarsListing.module.css';
 
 const CATEGORIES = ["All", "SUV", "Sports", "Electric", "Sedan"];
 const YEARS = ["All", "2024", "2025", "2026"];
 
 const CARS = [
-  { id: 1, name: "911 GT3 RS",   year: "2026", fuel: "Gasoline", seats: "4", price: 130000, category: "Sports",   image: "" },
-  { id: 2, name: "Taycan Turbo", year: "2025", fuel: "Electric",  seats: "4", price: 185000, category: "Electric", image: "" },
-  { id: 3, name: "Urus S",       year: "2026", fuel: "Gasoline", seats: "5", price: 200000, category: "SUV",      image: "" },
-  // Add more cars here
+  { id: 1, name: "911 Carrera GTS", year: "2026", fuel: "Gasoline", seats: "4", price: 185000, category: "Sports", image: "" },
+  { id: 2, name: "Taycan Turbo", year: "2025", fuel: "Electric", seats: "4", price: 185000, category: "Electric", image: "" },
+  { id: 3, name: "Urus S", year: "2026", fuel: "Gasoline", seats: "5", price: 200000, category: "SUV", image: "" },
+  { id: 4, name: "911 Carrera GTS", year: "2026", fuel: "Gasoline", seats: "4", price: 185000, category: "Sports", image: "" },
+  { id: 5, name: "Taycan Turbo", year: "2025", fuel: "Electric", seats: "4", price: 185000, category: "Electric", image: "" },
+  { id: 6, name: "Urus S", year: "2026", fuel: "Gasoline", seats: "5", price: 200000, category: "SUV", image: "" },
+  { id: 7, name: "911 Carrera GTS", year: "2026", fuel: "Gasoline", seats: "4", price: 185000, category: "Sports", image: "" },
+  { id: 8, name: "Taycan Turbo", year: "2025", fuel: "Electric", seats: "4", price: 185000, category: "Electric", image: "" },
+  { id: 9, name: "Urus S", year: "2026", fuel: "Gasoline", seats: "5", price: 200000, category: "SUV", image: "" },
 ];
 
 export default function CarListing() {
@@ -38,32 +44,30 @@ export default function CarListing() {
   return (
     <>
       <Navbar />
-      <div className="container py-5" style={{ maxWidth: 1100 }}>
-        <h1 className="page-title mb-1">Browse our collection</h1>
-        <p className="text-secondary mb-4">Explore our extensive selection of premium vehicles</p>
+      <div className="container px-5 py-5" style={{ maxWidth: 1600 }}>
+        <h1 className={`${styles.pageTitle} mb-3`}>Browse our collection</h1>
+        <p className="text-secondary fs-6 mb-4">Explore our extensive selection of premium vehicles</p>
 
-        <div className="search-wrapper mb-4" style={{ maxWidth: 420 }}>
-          <span className="search-icon">🔍</span>
+        <div className={`input-group mb-5 ${styles.searchWrapper}`} style={{ maxWidth: 600, height: 50 }}>
           <input
             type="text"
-            className="form-control search-input"
-            placeholder="Search"
+            className={`form-control`}
+            placeholder={"🔍\u00A0\u00A0\u00A0\u00A0\u00A0Search"}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
         </div>
 
         <div className="row g-4 align-items-start">
-          {/* Filter Sidebar */}
           <div className="col-12 col-md-3">
-            <div className="bg-white rounded-3 border p-4" style={{ position: "sticky", top: 24 }}>
-              <div className="filter-title mb-3">Filters</div>
+            <div className={`${styles.filterCard} p-4`} style={{ position: "sticky", top: 24 }}>
+              <div className={`${styles.filterTitle} fs-4 mb-3`}>Filters</div>
 
-              <div className="filter-label mb-2">Category</div>
+              <div className={`${styles.filterLabel} mb-3`}>Category</div>
               {CATEGORIES.map((cat) => (
                 <div className="form-check mb-1" key={cat}>
                   <input
-                    className="form-check-input"
+                    className={`form-check-input ${styles.formRadioInput}`}
                     type="radio"
                     name="category"
                     id={`cat-${cat}`}
@@ -80,12 +84,10 @@ export default function CarListing() {
                 </div>
               ))}
 
-              <hr className="my-3" />
-
-              <div className="filter-label mb-2">Price range</div>
+              <div className={`${styles.filterLabel} mb-2 mt-3`}>Price range</div>
               <input
                 type="range"
-                className="form-range"
+                className={`form-range ${styles.formRange}`}
                 min={0}
                 max={200000}
                 step={5000}
@@ -97,11 +99,9 @@ export default function CarListing() {
                 <span>${priceRange.toLocaleString()}</span>
               </div>
 
-              <hr className="my-3" />
-
-              <div className="filter-label mb-2">Year</div>
+              <div className={`${styles.filterLabel} mb-2 mt-3`}>Year</div>
               <select
-                className="form-select"
+                className="form-select mb-2"
                 style={{ fontSize: "0.9rem" }}
                 value={year}
                 onChange={(e) => setYear(e.target.value)}
@@ -112,8 +112,7 @@ export default function CarListing() {
               </select>
 
               <button
-                className="btn btn-outline-secondary w-100 mt-3"
-                style={{ fontSize: "0.88rem" }}
+                className={`btn btn-outline-secondary w-100 mt-3 ${styles.resetBtn}`}
                 onClick={handleReset}
               >
                 Reset Filters
@@ -121,7 +120,6 @@ export default function CarListing() {
             </div>
           </div>
 
-          {/* Car Grid */}
           <div className="col-12 col-md-9">
             <div className="row row-cols-1 row-cols-sm-2 row-cols-lg-3 g-3">
               {filtered.length === 0 && (
@@ -142,7 +140,6 @@ export default function CarListing() {
               ))}
             </div>
           </div>
-
         </div>
       </div>
       <Footer />
