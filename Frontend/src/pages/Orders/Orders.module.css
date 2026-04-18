@@ -1,2 +1,10 @@
-@import 'bootstrap/dist/css/bootstrap.min.css';
-@import 'bootstrap-icons/font/bootstrap-icons.css';  
+.arrowIcon {
+  cursor: pointer;
+  color: #111;
+  transition: all 0.3s ease;
+}
+
+.arrowIcon:hover {
+  color: #cdcdcd;
+  transform: scale(1.2);
+}

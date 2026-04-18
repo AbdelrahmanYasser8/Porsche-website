@@ -1,4 +1,4 @@
-import './Orders.module.css';
+import styles from './Orders.module.css';
 import { useState } from 'react';
 
 import Navbar from '../../components/Navbar/Navbar';
@@ -118,14 +118,14 @@ export function OrdersContent() {
 								<div className="fw-semibold" style={{ fontSize: '0.9rem' }}>{order.id}</div>
 							</div>
 							<div className="d-flex align-items-center gap-1">
-								<i className="bi bi-calendar2 text-muted"></i>
+							<i className="fas fa-calendar text-muted"></i>
 								<div>
 									<div className="text-muted" style={{ fontSize: '0.75rem' }}>Order date</div>
 									<div className="fw-semibold">{order.date}</div>
 								</div>
 							</div>
 							<div className="d-flex align-items-center gap-1">
-								<i className="bi bi-currency-dollar text-muted"></i>
+							<i className="fas fa-dollar-sign text-muted"></i>
 								<div>
 									<div className="text-muted" style={{ fontSize: '0.75rem' }}>Total</div>
 									<div className="fw-semibold">{order.total}</div>
@@ -155,11 +155,11 @@ export function OrdersContent() {
 
 			<div className="d-flex justify-content-center gap-2 mt-2">
 				<button
-					className="btn btn-sm btn-light"
+					className="border-0 bg-transparent btn-sm"
 					onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
 					disabled={currentPage === 1}
 				>
-					◀
+					<i className={`fa-solid fa-angle-left fs-5 ${styles.arrowIcon}`}></i>
 				</button>
 
 				{Array.from({ length: TOTAL_PAGES }, (_, i) => i + 1).map((page) => (
@@ -173,11 +173,11 @@ export function OrdersContent() {
 				))}
 
 				<button
-					className="btn btn-sm btn-light"
+					className="border-0 bg-transparent btn-sm"
 					onClick={() => setCurrentPage((p) => Math.min(TOTAL_PAGES, p + 1))}
 					disabled={currentPage === TOTAL_PAGES}
 				>
-					▶
+					<i className={`fa-solid fa-angle-right fs-5 ${styles.arrowIcon}`}></i>
 				</button>
 			</div>
 		</div>

@@ -1,4 +1,4 @@
-import './Profile.module.css';
+import styles from './Profile.module.css';
 import { useState } from 'react';
 
 import Footer from '../../components/Footer/Footer';
@@ -104,7 +104,7 @@ export default function Profile() {
 												: 'bg-white text-muted'
 										}`}
 									>
-										<i className="bi bi-person"></i>
+										<i className="fas fa-user"></i>
 										Profile Settings
 									</button>
 
@@ -116,12 +116,12 @@ export default function Profile() {
 												: 'bg-white text-muted'
 										}`}
 									>
-										<i className="bi bi-bag"></i>
+										<i className="fas fa-shopping-bag"></i>
 										Order History
 									</button>
 
 									<button className="btn bg-white text-muted text-start d-flex align-items-center gap-2 px-3 py-2 rounded-3 border-0">
-										<i className="bi bi-box-arrow-right"></i>
+									<i className="fas fa-right-from-bracket"></i>
 										Logout
 									</button>
 
@@ -135,7 +135,7 @@ export default function Profile() {
 								<div className="d-flex flex-column gap-4">
 
 									{/* EDIT PROFILE */}
-									<div className="card border-0 shadow-sm rounded-4 p-4" style={{ backgroundColor: '#f8f9fa' }}>
+									<div className="card border-0 shadow-sm rounded-4 p-4 profile-form" style={{ backgroundColor: '#f8f9fa' }}>
 										<h5 className="fw-bold mb-4">Edit Profile</h5>
 
 										<div className="mb-3">
@@ -143,9 +143,8 @@ export default function Profile() {
 
 											<div className="input-group">
 												<span className="input-group-text bg-white border-end-0">
-													<i className="bi bi-person text-muted"></i>
+											<i className="fas fa-user text-muted"></i>
 												</span>
-
 												<input
 													type="text"
 													className="form-control border-start-0"
@@ -166,13 +165,13 @@ export default function Profile() {
 												width: 'fit-content'
 											}}
 										>
-											<i className="bi bi-floppy"></i>
+											<i className="fas fa-floppy-disk"></i>
 											Save Changes
 										</button>
 									</div>
 
 									{/* CHANGE PASSWORD */}
-									<div className="card border-0 shadow-sm rounded-4 p-4" style={{ backgroundColor: '#f8f9fa' }}>
+									<div className="card border-0 shadow-sm rounded-4 p-4 profile-form" style={{ backgroundColor: '#f8f9fa' }}>
 										<h5 className="fw-bold mb-4">Change Password</h5>
 
 										{/* Current Password */}
@@ -180,7 +179,7 @@ export default function Profile() {
 											<label className="form-label text-muted">Current Password</label>
 											<div className="input-group">
 												<span className="input-group-text bg-white border-end-0">
-													<i className="bi bi-lock text-muted"></i>
+													<i className="fas fa-lock text-muted"></i>
 												</span>
 												<input
 													type="password"
@@ -200,7 +199,7 @@ export default function Profile() {
 											<label className="form-label text-muted">Password</label>
 											<div className="input-group">
 												<span className="input-group-text bg-white border-end-0">
-													<i className="bi bi-lock text-muted"></i>
+													<i className="fas fa-lock text-muted"></i>
 												</span>
 												<input
 													type="password"
@@ -220,7 +219,7 @@ export default function Profile() {
 											<label className="form-label text-muted">Confirm Password</label>
 											<div className="input-group">
 												<span className="input-group-text bg-white border-end-0">
-													<i className="bi bi-lock text-muted"></i>
+													<i className="fas fa-lock text-muted"></i>
 												</span>
 												<input
 													type="password"
@@ -245,7 +244,7 @@ export default function Profile() {
 												width: 'fit-content'
 											}}
 										>
-											<i className="bi bi-lock"></i>
+											<i className="fas fa-lock"></i>
 											Update Password
 										</button>
 									</div>
