@@ -1,5 +1,8 @@
-import Profile from './pages/Profile/Profile';
-
+import CarListing from "./pages/CarsListing/CarsListing"
 export default function App() {
-  return <Profile />;
+  return (
+    <>
+      <CarListing />
+    </>
+  )
 }

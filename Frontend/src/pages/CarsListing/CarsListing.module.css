@@ -1,0 +1,72 @@
+ 
+.pageTitle {
+  font-family: 'Barlow Condensed', sans-serif;
+  color: #111;
+}
+ 
+.filterCard {
+  border-radius: 10px;
+  background-color: #fff;
+}
+
+.filterTitle {
+  font-family: 'Barlow Condensed', sans-serif;
+  color: #111;
+}
+ 
+.filterLabel {
+  color: #999;
+}
+ 
+.formRadioInput:checked {
+  background-color: #000000 !important;
+}
+
+/* .formRange::-webkit-slider-runnable-track {
+  background-color: #ff0000 !important;
+} */
+
+.formRange::-webkit-slider-thumb {
+  background-color: hsl(0, 0%, 0%) !important;
+}
+
+.formRange:focus::-webkit-slider-thumb {
+  background-color: hsl(0, 0%, 20%) !important;
+}
+
+.formRange:active::-webkit-slider-thumb {
+  background-color: hsl(0, 0%, 50%) !important;
+}
+
+.searchWrapper {
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 14px 32px rgba(15, 23, 42, 0.06);
+  border: 1px solid rgba(15, 23, 42, 0.08);
+}
+
+.searchWrapper:hover {
+  border: 1.5px solid #1A1A1A !important;
+}
+
+.searchWrapper:has(input:focus) {
+  background-color: hsl(0, 0%, 100%) !important;
+}
+
+.searchInput {
+  background-color: transparent !important;
+  height: 100%;
+  border: 0 !important;
+  box-shadow: none !important;
+}
+
+.resetBtn {
+  color: #fff;
+  background-color: #6c757d;
+  border: 0px !important;
+}
+
+.resetBtn:hover {
+  color: #fff;
+  background-color: #9a9a9a !important;
+}
