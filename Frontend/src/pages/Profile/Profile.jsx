@@ -11,39 +11,51 @@ export default function Profile() {
 	const [currentPassword, setCurrentPassword] = useState('');
 	const [newPassword, setNewPassword] = useState('');
 	const [confirmPassword, setConfirmPassword] = useState('');
-	const [message, setMessage] = useState('');
+
+	
+	const [errors, setErrors] = useState({
+		current: '',
+		new: '',
+		confirm: ''
+	});
 
 	const displayName = fullName.trim() || 'Username';
 	const avatarLetter = displayName.charAt(0).toUpperCase();
 
-	const handleSaveChanges = () => {
-		setMessage('Profile updated successfully ✅');
-		setTimeout(() => setMessage(''), 2000);
-	};
+	
 
 	const handleUpdatePassword = () => {
-		if (!currentPassword || !newPassword || !confirmPassword) {
-			setMessage('Please fill all password fields ❌');
-			return;
+		let newErrors = {
+			current: '',
+			new: '',
+			confirm: ''
+		};
+
+		if (!currentPassword) {
+			newErrors.current = 'Please enter your current password';
 		}
 
-		if (newPassword !== confirmPassword) {
-			setMessage('Passwords do not match ❌');
-			return;
+		if (!newPassword) {
+			newErrors.new = 'Password must be at least 8 characters.';
+		} else if (newPassword.length < 8) {
+			newErrors.new = 'Password must be at least 8 characters.';
 		}
 
-		if (newPassword.length < 8) {
-			setMessage('Password must be at least 8 characters ❌');
-			return;
+		if (!confirmPassword) {
+			newErrors.confirm = 'Please confirm your password';
+		} else if (newPassword !== confirmPassword) {
+			newErrors.confirm = 'Passwords do not match.';
 		}
 
-		setMessage('Password updated successfully ✅');
+		setErrors(newErrors);
 
+		if (newErrors.current || newErrors.new || newErrors.confirm) return;
+
+		
 		setCurrentPassword('');
 		setNewPassword('');
 		setConfirmPassword('');
-
-		setTimeout(() => setMessage(''), 2000);
+		setErrors({ current: '', new: '', confirm: '' });
 	};
 
 	return (
@@ -56,12 +68,6 @@ export default function Profile() {
 					<h2 className="fw-bold mb-4" style={{ fontSize: '1.6rem' }}>
 						My Profile
 					</h2>
-
-					{message && (
-						<div className="alert alert-info py-2 text-center">
-							{message}
-						</div>
-					)}
 
 					<div className="row g-4 align-items-stretch">
 
@@ -151,8 +157,8 @@ export default function Profile() {
 										</div>
 
 										<button
-											onClick={handleSaveChanges}
-											className="btn text-white d-flex align-items-center gap-2 px-3 py-2  "
+											
+											className="btn text-white d-flex align-items-center gap-2 px-3 py-2"
 											style={{
 												backgroundColor: '#111',
 												borderRadius: '6px',
@@ -184,6 +190,9 @@ export default function Profile() {
 													onChange={(e) => setCurrentPassword(e.target.value)}
 												/>
 											</div>
+											{errors.current && (
+												<small className="text-danger">{errors.current}</small>
+											)}
 										</div>
 
 										{/* New Password */}
@@ -201,6 +210,9 @@ export default function Profile() {
 													onChange={(e) => setNewPassword(e.target.value)}
 												/>
 											</div>
+											{errors.new && (
+												<small className="text-danger">{errors.new}</small>
+											)}
 										</div>
 
 										{/* Confirm Password */}
@@ -218,6 +230,9 @@ export default function Profile() {
 													onChange={(e) => setConfirmPassword(e.target.value)}
 												/>
 											</div>
+											{errors.confirm && (
+												<small className="text-danger">{errors.confirm}</small>
+											)}
 										</div>
 
 										<button
