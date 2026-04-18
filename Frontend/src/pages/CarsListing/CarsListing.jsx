@@ -59,7 +59,7 @@ export default function CarListing() {
         <p className="text-secondary fs-6 mb-4">Explore our extensive selection of premium vehicles</p>
 
         <div className={`input-group mb-5 ps-2 d-flex align-items-center ${styles.searchWrapper}`} style={{ maxWidth: 600, height: 50 }}>
-          <i class="fa-solid fa-magnifying-glass fs-5 ps-1 border-0"></i>
+          <i className="fa-solid fa-magnifying-glass fs-5 ps-1 border-0"></i>
           <input
             type="text"
             className={`form-control pb-2 ${styles.searchInput}`}

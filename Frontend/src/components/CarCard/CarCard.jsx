@@ -3,15 +3,15 @@ import styles from './CarCard.module.css';
 import React from "react";
 
 
-const userIcon = <i class="fa-solid fa-user pe-2"></i>;
+const userIcon = <i className="fa-solid fa-user pe-2"></i>;
 function fuleIcon(fuel) {
   switch (fuel) {
     case "Gasoline":
-      return <i class="fa-solid fa-gas-pump pe-3 me-1"></i>;
+      return <i className="fa-solid fa-gas-pump pe-3 me-1"></i>;
     case "Electric":
-      return <i class="fa-solid fa-bolt pe-3 me-1"></i>;
+      return <i className="fa-solid fa-bolt pe-3 me-1"></i>;
     default:
-      return <i class="fa-solid fa-gas-pump pe-3 me-1"></i>;
+      return <i className="fa-solid fa-gas-pump pe-3 me-1"></i>;
   }
 }
 
@@ -35,11 +35,13 @@ export default function CarCard({ name, year, fuel, seats, price, image }) {
             <span>{userIcon} {seats} seats</span>
           </div>
         </div>
-        <div className="mt-auto d-flex justify-content-center">
-          <button className={`${styles.configureBtn} btn btn-dark rounded-2 py-2 mb-3`}>
-            Configure
-          </button>
-        </div>
+        <a href='/CarDetails' className="mt-auto text-decoration-none">  
+          <div className="mt-auto d-flex justify-content-center">
+            <button className={`${styles.configureBtn} btn btn-dark rounded-2 py-2 mb-3`}>
+              Configure
+            </button>
+          </div>
+        </a>
       </div>
     </div>
   );

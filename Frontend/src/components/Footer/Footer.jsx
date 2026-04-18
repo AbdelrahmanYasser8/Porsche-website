@@ -6,8 +6,8 @@ export default function Footer() {
       <footer>
         <div className="bg-dark text-white text-center d-flex justify-content-center align-items-center row g-0" style={{ height: '150px' }}>
           <div className="row d-flex justify-content-center align-items-center mt-4">
-            <a href="#" className="col-auto text-white text-decoration-none mx-5">Home</a>
-            <a href="#" className="col-auto text-white text-decoration-none mx-5">About</a>
+            <a href="/home" className="col-auto text-white text-decoration-none mx-5">Home</a>
+            <a href="/about" className="col-auto text-white text-decoration-none mx-5">About</a>
             <p className="col-auto text-white text-decoration-none mx-5 mb-0">Contact</p>
           </div>
           <div className="row d-flex justify-content-center g-3 mt-0 mb-4 me-2">

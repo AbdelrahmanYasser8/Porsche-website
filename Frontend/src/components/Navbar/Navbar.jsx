@@ -6,9 +6,9 @@ export default function Navbar() {
       <nav className="navbar bg-white container-fluid">
         <a className="navbar-brand h1 col fs-3 mx-4" href="#">Porsche</a>
         <div className="col d-flex justify-content-center align-items-center g-0">
-          <a className={`nav-link mx-4 fs-6 p-1 ${styles.linkHover || ''}`} href="#">Home</a>
-          <a className={`nav-link mx-4 fs-6 p-1 ${styles.linkHover || ''}`} href="#">Shop</a>
-          <a className={`nav-link mx-4 fs-6 p-1 ${styles.linkHover || ''}`} href="#">About</a>
+          <a className={`nav-link mx-4 fs-6 p-1 ${styles.linkHover || ''}`} href="/home">Home</a>
+          <a className={`nav-link mx-4 fs-6 p-1 ${styles.linkHover || ''}`} href="/CarsListing">Shop</a>
+          <a className={`nav-link mx-4 fs-6 p-1 ${styles.linkHover || ''}`} href="/about">About</a>
         </div>
         <div className="col d-flex justify-content-end align-items-center">
           <a className="text-decoration-none text-reset" href="#">
@@ -18,7 +18,7 @@ export default function Navbar() {
             </div>
           </a>
           <div>
-            <a className={` mx-4 p-1 text-decoration-none text-reset ${styles.iconHover || ''}`} href="#">
+            <a className={` mx-4 p-1 text-decoration-none text-reset ${styles.iconHover || ''}`} href="/register">
               <i className={`fa-solid fa-user fs-5 ${styles.iconHover}`}></i>
             </a>
           </div>
