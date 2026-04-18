@@ -1,2 +1,11 @@
-@import 'bootstrap/dist/css/bootstrap.min.css';
-@import 'bootstrap-icons/font/bootstrap-icons.css';  
+
+
+:global(.profile-form) :global(.form-control):focus {
+    box-shadow: none !important;
+    border-color: #dee2e6 !important;
+    outline: none !important;
+}
+
+:global(.profile-form) :global(.input-group-text) {
+    border-color: #dee2e6 !important;
+}
