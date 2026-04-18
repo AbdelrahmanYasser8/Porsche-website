@@ -1,0 +1,10 @@
+.arrowIcon {
+  cursor: pointer;
+  color: #111;
+  transition: all 0.3s ease;
+}
+
+.arrowIcon:hover {
+  color: #cdcdcd;
+  transform: scale(1.2);
+}
