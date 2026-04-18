@@ -1,7 +1,18 @@
 import 'bootstrap/dist/css/bootstrap.min.css';
 import styles from './CarCard.module.css';
-
 import React from "react";
+
+function fuleIcon(fuel) {
+  switch (fuel) {
+    case "Gasoline":
+      return <i class="fa-solid fa-gas-pump pe-3 me-1"></i>;
+    case "Electric":
+      return <i class="fa-solid fa-bolt pe-3 me-1"></i>;
+    default:
+      return <i class="fa-solid fa-gas-pump pe-3 me-1"></i>;
+  }
+}
+
 
 export default function CarCard({ name, year, fuel, seats, price, image }) {
   return (
@@ -17,7 +28,7 @@ export default function CarCard({ name, year, fuel, seats, price, image }) {
             <span>${price.toLocaleString()}</span>
           </div>
           <div className="d-flex justify-content-between mb-3" style={{ fontSize: "0.8rem", color: "#666" }}>
-            <span>⛽ {fuel}</span>
+            <span>{fuleIcon(fuel)}{fuel}</span>
             <span>👤 {seats} seats</span>
           </div>
         </div>

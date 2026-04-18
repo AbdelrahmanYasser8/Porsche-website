@@ -1,9 +1,6 @@
-@import url('https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600&family=Barlow+Condensed:wght@600;700&display=swap');
- 
  
 .pageTitle {
   font-family: 'Barlow Condensed', sans-serif;
-  letter-spacing: 1.5px;
   color: #111;
 }
  
@@ -14,13 +11,11 @@
 
 .filterTitle {
   font-family: 'Barlow Condensed', sans-serif;
-  letter-spacing: 1.5px;
   color: #111;
 }
  
 .filterLabel {
   color: #999;
-  letter-spacing: 0.8px;
 }
  
 .formRadioInput:checked {
@@ -48,6 +43,21 @@
   overflow: hidden;
   box-shadow: 0 14px 32px rgba(15, 23, 42, 0.06);
   border: 1px solid rgba(15, 23, 42, 0.08);
+}
+
+.searchWrapper:hover {
+  border: 1.5px solid #1A1A1A !important;
+}
+
+.searchWrapper:has(input:focus) {
+  background-color: hsl(0, 0%, 100%) !important;
+}
+
+.searchInput {
+  background-color: transparent !important;
+  height: 100%;
+  border: 0 !important;
+  box-shadow: none !important;
 }
 
 .resetBtn {
