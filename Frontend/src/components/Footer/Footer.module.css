@@ -3,7 +3,7 @@
 }
 
 .iconHover:hover {
-    background-color: #cfcece;
+    color: #5D5D5D;
     border-radius: 5px;
     transition: ease-in-out 0.3s;
 }
