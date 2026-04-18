@@ -32,8 +32,8 @@ export default function Profile() {
 			return;
 		}
 
-		if (newPassword.length < 6) {
-			setMessage('Password must be at least 6 characters ❌');
+		if (newPassword.length < 8) {
+			setMessage('Password must be at least 8 characters ❌');
 			return;
 		}
 
