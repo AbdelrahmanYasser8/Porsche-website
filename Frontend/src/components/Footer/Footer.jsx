@@ -1,4 +1,4 @@
-import styles from './Footer.module.css';
+
 import linkedin from '../../assets/icons/linkedin.png';
 import youtube from '../../assets/icons/youtube.png';
 import instagram from '../../assets/icons/instagram.png';
@@ -14,7 +14,7 @@ export default function Footer() {
             <a href="#" className="col-auto text-white text-decoration-none mx-5">About</a>
             <p className="col-auto text-white text-decoration-none mx-5 mb-0">Contact</p>
           </div>
-          <div className="row d-flex justify-content-center g-3 mt-0 mb-4 me-2">
+          <div className="row d-flex justify-content-center g-3 mt-0 m-4 me-2">
             <div className="col-3"></div>
             <a href="https://www.linkedin.com/company/porsche" target="_blank" className="col-auto">
               <img src={linkedin} className="col-auto" alt="Porsche Logo" style={{ height: "30px" }} />

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import styles from "./Home.module.css";
-
+import pv from "../../assets/icons/Porsche 911 GT3 RS.mp4";
 import img911 from "../../assets/icons/911@2x.png";
 import cayenee from "../../assets/icons/filters_format(avif) (4).png";
 import cayman from "../../assets/icons/718 caymans.png";
@@ -18,11 +18,25 @@ const categories = [
 ];
 
 const models = [
-  { name: "911", img: img911 },
-  { name: "Cayman", img: cayman },
-  { name: "Panamera", img: cayenee },
+  {
+    name: "911",
+    img: img911,
+    exploreLink: "/models/911",
+    discoverLink: "/discover/911",
+  },
+  {
+    name: "718",
+    img: cayman,
+    exploreLink: "/models/718",
+    discoverLink: "/discover/718",
+  },
+  {
+    name: "Cayenne",
+    img: cayenee,
+    exploreLink: "/models/cayenne",
+    discoverLink: "/discover/cayenne",
+  },
 ];
-
 export default function Home() {
   const [activeModel, setActiveModel] = useState(0);
 
@@ -37,6 +51,16 @@ export default function Home() {
 
       {/* HERO */}
       <section className={styles.hero}>
+       <video
+    className={styles.heroVideo}
+    autoPlay
+    muted
+    loop
+    playsInline
+  >
+    <source src={pv} type="video/mp4" />
+  </video>
+
         <div className={styles.heroContent}>
           <h1 className={styles.heroTitle}>
             {"Pure Driving Emotion".split(" ").map((word, i) => (
@@ -111,8 +135,12 @@ export default function Home() {
                   {model.name}
                 </button>
               ))}
-            </div>
-          </div>
+              </div>
+              </div>
+              <div className={styles.buttons}>
+ 
+</div>
+          
 
           {/* RIGHT GHOST */}
           <div className={styles.sideCarRight}>
@@ -124,6 +152,15 @@ export default function Home() {
           <button onClick={next} className={`${styles.arrow} ${styles.right}`}>›</button>
 
         </div>
+          <div className={styles.modelButtons}>
+    <a href={models[activeModel].exploreLink} className={styles.btnExplore}>
+      EXPLORE THE MODEL
+    </a>
+    <a href={models[activeModel].discoverLink} className={styles.btnDiscover}>
+      DISCOVER MORE
+    </a>
+  </div>
+
       </section>
 
     </div>
