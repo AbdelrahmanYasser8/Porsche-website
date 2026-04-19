@@ -1,0 +1,18 @@
+.place-order {
+    background-color: black;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    font-size: 16px;
+    border-radius: 5px;
+    cursor: pointer;
+    height: 55px;
+}
+
+.place-order:hover {
+    background-color: #333;
+}
+
+.model-container {
+    height: 70vh;
+}
