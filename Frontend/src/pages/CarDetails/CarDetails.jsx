@@ -182,17 +182,19 @@ export default function CarDetails() {
                     </div>
                 </div>
                 <div className='col-4 d-flex flex-column gap-4'>
-                    <div className='bg-white p-4 rounded-4'>
-                        <h1>911 Carrera</h1>
-                        <p className='text-light'>2026 model</p>
-                        <h5 className='my-4'>Description</h5>
-                        <p className='text-light'>The Porsche 911 Carrera is a high-performance sports car with iconic design, strong turbocharged power, and precise handling.</p>
-                        <h5 className='my-4'>Colours</h5>
-                        <ColorSelector setColor={setSelectedColor}/>
-                        <h5 className='my-4'>Wheels</h5>
-                        <WheelSelector setWheel={setSelectedWheel} />
-                        <button className={`w-100 fs-5 rounded-3 mt-4 ${styles['place-order'] || ''}`}>Place Order</button>
-                    </div>
+                    <a href='/'>
+                        <div className='bg-white p-4 rounded-4'>
+                            <h1>911 Carrera</h1>
+                            <p className='text-light'>2026 model</p>
+                            <h5 className='my-4'>Description</h5>
+                            <p className='text-light'>The Porsche 911 Carrera is a high-performance sports car with iconic design, strong turbocharged power, and precise handling.</p>
+                            <h5 className='my-4'>Colours</h5>
+                            <ColorSelector setColor={setSelectedColor}/>
+                            <h5 className='my-4'>Wheels</h5>
+                            <WheelSelector setWheel={setSelectedWheel} />
+                            <button className={`w-100 fs-5 rounded-3 mt-4 ${styles['place-order'] || ''}`}>Place Order</button>
+                        </div>
+                    </a>
                     <div className='bg-white p-4 rounded-4'>
                         <h5 className='mb-4'>Full Specifications</h5>
                         <div className='d-flex'>

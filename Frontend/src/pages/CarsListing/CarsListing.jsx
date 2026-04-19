@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { useLocation } from "react-router-dom"; // Add this import
 import "bootstrap/dist/css/bootstrap.min.css";
 import Navbar from '../../components/Navbar/Navbar';
 import Footer from '../../components/Footer/Footer';
@@ -30,11 +31,39 @@ const CARS = [
   { id: 10, name: "911 Turbo S Cabriolet", year: "2026", fuel: "Gasoline", seats: "2", price: 450000, category: "Sports", image: imageMap["Turbo_S"] },
 ];
 
+
+const getCategoryFromPath = (pathname) => {
+  const path = pathname.replace('/', '').toLowerCase();
+  
+  switch (path) {
+    case 'shop/suv':
+      return 'SUV';
+    case 'shop/sports':
+      return 'Sports';
+    case 'shop/electric':
+      return 'Electric';
+    case 'shop/sedan':
+      return 'Sedan';
+    case 'shop':
+      return 'All';
+    default:
+      return 'All';
+  }
+};
+
 export default function CarListing() {
+  const location = useLocation();
+  
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState("All");
   const [priceRange, setPriceRange] = useState(1000000);
   const [year, setYear] = useState("All");
+
+
+  useEffect(() => {
+    const categoryFromUrl = getCategoryFromPath(location.pathname);
+    setCategory(categoryFromUrl);
+  }, [location.pathname]);
 
   const filtered = CARS.filter((car) => {
     const matchesSearch = car.name.toLowerCase().includes(search.toLowerCase());

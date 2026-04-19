@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "react-router-dom"; // Add this import
 import styles from "./Home.module.css";
 import pv from "../../assets/icons/Porsche 911 GT3 RS.mp4";
 import img911 from "../../assets/icons/911@2x.png";
@@ -13,10 +14,10 @@ import electric from "../../assets/icons/electric car.jpg";
 import sedan from "../../assets/icons/sedan car.jpg";
 
 const categories = [
-  { label: "SUV", img: suv },
-  { label: "Sports", img: sport },
-  { label: "Electric", img: electric },
-  { label: "Sedan", img: sedan },
+  { label: "SUV", img: suv, path: "/shop/SUV" },
+  { label: "Sports", img: sport, path: "/shop/Sports" },
+  { label: "Electric", img: electric, path: "/shop/Electric" },
+  { label: "Sedan", img: sedan, path: "/shop/Sedan" },
 ];
 
 const models = [
@@ -39,6 +40,7 @@ const models = [
     discoverLink: "/discover/cayenne",
   },
 ];
+
 export default function Home() {
   const [activeModel, setActiveModel] = useState(0);
 
@@ -79,8 +81,9 @@ export default function Home() {
           <p className={styles.heroSub}>
             Built for performance. Driven by passion.
           </p>
-
-          <button className={styles.btnDark}>Shop Now</button>
+          <a href='/shop'>
+            <button className={styles.btnDark}>Shop Now</button>
+          </a>
         </div>
       </section>
 
@@ -90,7 +93,12 @@ export default function Home() {
 
         <div className={styles.categoryGrid}>
           {categories.map((cat) => (
-            <div key={cat.label} className={styles.categoryCard}>
+            <Link 
+              key={cat.label} 
+              to={cat.path} 
+              className={styles.categoryCard}
+              style={{ textDecoration: 'none', color: 'inherit' }}
+            >
               <img src={cat.img} alt={cat.label} />
               <div className={styles.overlay}></div>
 
@@ -98,7 +106,7 @@ export default function Home() {
                 <span>{cat.label}</span>
                 <span>→</span>
               </div>
-            </div>
+            </Link>
           ))}
         </div>
       </section>
