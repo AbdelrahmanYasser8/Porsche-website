@@ -120,10 +120,10 @@ export default function Profile() {
 										Order History
 									</button>
 
-									<button className="btn bg-white text-muted text-start d-flex align-items-center gap-2 px-3 py-2 rounded-3 border-0">
-									<i className="fas fa-right-from-bracket"></i>
+									<a className="btn bg-white text-muted text-start d-flex align-items-center gap-2 px-3 py-2 rounded-3 border-0" href="/login">
+										<i className="fas fa-right-from-bracket"></i>
 										Logout
-									</button>
+									</a>
 
 								</nav>
 							</div>

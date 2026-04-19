@@ -4,13 +4,13 @@ export default function Footer() {
   return (
     <>
       <footer>
-        <div className="bg-dark text-white text-center d-flex justify-content-center align-items-center row g-0" style={{ height: '150px' }}>
+        <div className="bg-dark text-white text-center d-flex justify-content-center align-items-center row g-0 m-0" style={{ height: '150px' }}>
           <div className="row d-flex justify-content-center align-items-center mt-4">
             <a href="/home" className="col-auto text-white text-decoration-none mx-5">Home</a>
             <a href="/about" className="col-auto text-white text-decoration-none mx-5">About</a>
             <p className="col-auto text-white text-decoration-none mx-5 mb-0">Contact</p>
           </div>
-          <div className="row d-flex justify-content-center g-3 mt-0 m-4 me-2">
+          <div className="row d-flex justify-content-center g-3 mt-0 mb-4 me-2">
             <div className="col-3"></div>
             <a href="https://www.linkedin.com/company/porsche" target="_blank" className="col-auto text-white text-decoration-none">
               <i className={`fa-brands fa-linkedin-in fs-3 ${styles.iconHover}`}></i>

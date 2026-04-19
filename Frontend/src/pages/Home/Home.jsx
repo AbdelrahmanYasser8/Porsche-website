@@ -51,8 +51,9 @@ export default function Home() {
     setActiveModel((i) => (i + 1) % models.length);
 
   return (
+    <>
+    <Navbar  />
     <div className={styles.home}>
-      <Navbar/>
       {/* HERO */}
       <section className={styles.hero}>
        <video
@@ -64,8 +65,8 @@ export default function Home() {
   >
     <source src={pv} type="video/mp4" />
   </video>
-
         <div className={styles.heroContent}>
+
           <h1 className={styles.heroTitle}>
             {"Pure Driving Emotion".split(" ").map((word, i) => (
               <span
@@ -148,6 +149,7 @@ export default function Home() {
               </div>
               </div>
               <div className={styles.buttons}>
+ 
 </div>
           
 
@@ -162,9 +164,11 @@ export default function Home() {
 
         </div>
           <div className={styles.modelButtons}>
+    {/* <a href={models[activeModel].exploreLink} className={styles.btnExplore}> */}
     <a href='/Shop' className={styles.btnExplore}>
       EXPLORE THE MODEL
     </a>
+    {/* <a href={models[activeModel].discoverLink} className={styles.btnDiscover}> */}
     <a href='/shop' className={styles.btnDiscover}>
       DISCOVER MORE
     </a>
@@ -173,5 +177,6 @@ export default function Home() {
       </section>
       <Footer/>
     </div>
+    </>
   );
 }
