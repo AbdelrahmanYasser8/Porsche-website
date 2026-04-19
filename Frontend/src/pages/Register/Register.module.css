@@ -1,0 +1,122 @@
+.passwordRequirement {
+  font-size: 0.95em;
+  margin-bottom: 2px;
+}
+
+.passwordRequirement.valid {
+  color: green;
+}
+
+.passwordRequirement.invalid {
+  color: red;
+}
+
+.page {
+background-color: #efefef;
+}
+
+.content {
+  min-height: calc(100vh - 250px);
+}
+
+.card {
+  width: 100%;
+  max-width: 470px;
+  border-radius: 18px;
+  padding: 48px 44px;
+  box-shadow: 0 6px 32px rgba(0, 0, 0, 0.09);
+}
+
+.label {
+  color: #1a1a1a;
+}
+
+.field {
+  background-color: transparent;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.icon {
+  color: #5D5D5D;
+}
+
+.input {
+  background-color: transparent;
+  border: none;
+  box-shadow: none;
+  color: #333;
+}
+
+.input:focus {
+  border-color: #dee2e6 !important;
+  /* border-left: 0 !important; */
+  outline: none;
+  box-shadow: none;
+}
+
+.checkbox, .checkbox:focus {
+  border-radius: 4px;
+  border-color: #5D5D5D !important;
+  cursor: pointer;
+}
+
+.checkbox:checked {
+  border-color: #5D5D5D !important;
+  background-color: #5D5D5D !important;
+  cursor: pointer;
+}
+
+.checkboxLabel {
+  color: #888;
+  cursor: pointer;
+}
+
+.termsText {
+  color: #1a1a1a;
+  font-weight: 500;
+}
+
+.button {
+  background-color: #000;
+  color: #fff;
+  width: 100%;
+  font-size: 0.95rem;
+  font-weight: 500;
+  min-height: 42px;
+  padding: 0 16px;
+  border-radius: 7px;
+  border: none;
+  cursor: pointer;
+  line-height: 1.2;
+  letter-spacing: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.2s ease;
+}
+
+.button:hover {
+  background-color: #111;
+}
+
+.button:focus,
+.button:active {
+  background-color: #000 !important;
+  box-shadow: none !important;
+}
+
+.signInText {
+  color: #999;
+}
+
+.signInLink {
+  color: #111;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.signInLink:hover {
+  color: #160808;
+}

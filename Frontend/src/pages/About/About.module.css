@@ -1,0 +1,15 @@
+.hero-section {
+  height: 60vh;
+  background: black;
+  position: relative;
+}
+
+.hero-section img {
+  object-fit: cover;
+  opacity: 0.7;
+}
+
+.hero-content {
+  z-index: 2;
+  position: relative;
+}
