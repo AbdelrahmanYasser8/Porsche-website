@@ -148,7 +148,6 @@ export default function Home() {
               </div>
               </div>
               <div className={styles.buttons}>
- 
 </div>
           
 
@@ -163,11 +162,9 @@ export default function Home() {
 
         </div>
           <div className={styles.modelButtons}>
-    {/* <a href={models[activeModel].exploreLink} className={styles.btnExplore}> */}
     <a href='/Shop' className={styles.btnExplore}>
       EXPLORE THE MODEL
     </a>
-    {/* <a href={models[activeModel].discoverLink} className={styles.btnDiscover}> */}
     <a href='/shop' className={styles.btnDiscover}>
       DISCOVER MORE
     </a>
