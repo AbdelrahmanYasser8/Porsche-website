@@ -1,71 +1,6 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { ordersApi } from "../../api/orders";
 import styles from "./OrderHistory.module.css";
-
-const ORDERS = [
-  {
-    id: "300001001",
-    date: "January 4, 2023",
-    total: "$71,300",
-    status: "Completed",
-    items: [{ name: "718 Boxster", color: "Guards Red", wheelType: "Wheel Type 1" }],
-  },
-  {
-    id: "503051001",
-    date: "July 18, 2025",
-    total: "$444,700",
-    status: "Completed",
-    items: [{ name: "911 GT3", color: "Python Green", wheelType: "Wheel Type 3" }],
-  },
-  {
-    id: "633002000",
-    date: "March 2026",
-    total: "$156,300",
-    status: "Cancelled",
-    items: [{ name: "Macan", color: "Volcano Grey", wheelType: "Wheel Type 2" }],
-  },
-  {
-    id: "100000004",
-    date: "April 2024",
-    total: "$85,400",
-    status: "Processing",
-    items: [{ name: "Cayenne", color: "White", wheelType: "Wheel Type 4" }],
-  },
-  {
-    id: "100000005",
-    date: "May 2024",
-    total: "$106,700",
-    status: "Completed",
-    items: [{ name: "Panamera", color: "Black", wheelType: "Wheel Type 1" }],
-  },
-  {
-    id: "100000006",
-    date: "June 2024",
-    total: "$73,500",
-    status: "Cancelled",
-    items: [{ name: "718 Cayman", color: "GT Silver", wheelType: "Wheel Type 2" }],
-  },
-  {
-    id: "100000007",
-    date: "July 2024",
-    total: "$103,400",
-    status: "Completed",
-    items: [{ name: "Taycan Cross Turismo", color: "Frozen Blue", wheelType: "Wheel Type 4" }],
-  },
-  {
-    id: "100000008",
-    date: "August 2024",
-    total: "$89,800",
-    status: "Processing",
-    items: [{ name: "Macan Electric", color: "Provence", wheelType: "Wheel Type 1" }],
-  },
-  {
-    id: "100000009",
-    date: "September 2024",
-    total: "$118,900",
-    status: "Completed",
-    items: [{ name: "911 Carrera", color: "Arctic Grey", wheelType: "Wheel Type 3" }],
-  },
-];
 
 function StatusBadge({ status }) {
   const statusClass =
@@ -79,12 +14,53 @@ function StatusBadge({ status }) {
 }
 
 export default function OrderHistory({ showIntro = true }) {
+  const [orders, setOrders] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
   const ORDERS_PER_PAGE = 3;
-  const TOTAL_PAGES = Math.ceil(ORDERS.length / ORDERS_PER_PAGE);
-  const start = (currentPage - 1) * ORDERS_PER_PAGE;
-  const paginatedOrders = ORDERS.slice(start, start + ORDERS_PER_PAGE);
+
+  useEffect(() => {
+    let active = true;
+
+    const loadOrders = async () => {
+      try {
+        setLoading(true);
+        setError("");
+        const response = await ordersApi.listMine();
+
+        if (active) {
+          setOrders(response);
+          setCurrentPage(1);
+        }
+      } catch (fetchError) {
+        if (active) {
+          setError(fetchError.message || "Failed to load orders");
+          setOrders([]);
+        }
+      } finally {
+        if (active) {
+          setLoading(false);
+        }
+      }
+    };
+
+    loadOrders();
+
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  const TOTAL_PAGES = Math.max(1, Math.ceil(orders.length / ORDERS_PER_PAGE));
+  const safePage = Math.min(currentPage, TOTAL_PAGES);
+  const start = (safePage - 1) * ORDERS_PER_PAGE;
+  const paginatedOrders = orders.slice(start, start + ORDERS_PER_PAGE);
+
+  useEffect(() => {
+    setCurrentPage((page) => Math.min(page, TOTAL_PAGES));
+  }, [TOTAL_PAGES]);
 
   return (
     <section className={styles.history}>
@@ -100,53 +76,72 @@ export default function OrderHistory({ showIntro = true }) {
 
           <div className={styles.summaryCard}>
             <span className={styles.summaryLabel}>Total orders</span>
-            <strong className={styles.summaryValue}>{ORDERS.length}</strong>
+            <strong className={styles.summaryValue}>{orders.length}</strong>
           </div>
         </div>
       ) : null}
 
+      {error ? (
+        <div className="alert alert-danger mb-4" role="alert">
+          {error}
+        </div>
+      ) : null}
+
       <div className={styles.list}>
-        {paginatedOrders.map((order) => (
-          <article key={order.id} className={styles.orderCard}>
-            <div className={styles.orderTop}>
-            <div className={styles.orderMetaGrid}>
-              <div className={styles.metaItem}>
-                <span className={styles.metaLabel}>Order ID</span>
-                <span className={styles.metaValue}>{order.id}</span>
-              </div>
-              <div className={styles.metaItem}>
-                <span className={styles.metaLabel}>Order date</span>
-                <span className={styles.metaValue}>{order.date}</span>
-              </div>
-              <div className={styles.metaItem}>
-                <span className={styles.metaLabel}>Total</span>
-                <span className={styles.metaValue}>{order.total}</span>
-              </div>
-            </div>
+        {loading ? (
+          <div className="py-5 text-center text-secondary">Loading orders...</div>
+        ) : null}
 
-              <StatusBadge status={order.status} />
-            </div>
+        {!loading &&
+          paginatedOrders.map((order) => {
+            const firstItem = order.items?.[0] || {};
 
-            <div className={styles.itemsBlock}>
-              <div className={styles.itemsTitle}>Item</div>
-            <div className={styles.itemsList}>
-              <div className={styles.itemRow}>
-                <div className={styles.itemName}>{order.items[0].name}</div>
-                <div className={styles.itemMeta}>Color: {order.items[0].color}</div>
-                <div className={styles.itemMeta}>Wheel type: {order.items[0].wheelType}</div>
-              </div>
-            </div>
-          </div>
-          </article>
-        ))}
+            return (
+              <article key={order.dbId} className={styles.orderCard}>
+                <div className={styles.orderTop}>
+                  <div className={styles.orderMetaGrid}>
+                    <div className={styles.metaItem}>
+                      <span className={styles.metaLabel}>Order ID</span>
+                      <span className={styles.metaValue}>{order.id}</span>
+                    </div>
+                    <div className={styles.metaItem}>
+                      <span className={styles.metaLabel}>Order date</span>
+                      <span className={styles.metaValue}>{order.date}</span>
+                    </div>
+                    <div className={styles.metaItem}>
+                      <span className={styles.metaLabel}>Total</span>
+                      <span className={styles.metaValue}>{order.total}</span>
+                    </div>
+                  </div>
+
+                  <StatusBadge status={order.status} />
+                </div>
+
+                <div className={styles.itemsBlock}>
+                  <div className={styles.itemsTitle}>Item</div>
+                  <div className={styles.itemsList}>
+                    <div className={styles.itemRow}>
+                      <div className={styles.itemName}>{firstItem.name}</div>
+                      <div className={styles.itemMeta}>Color: {firstItem.color}</div>
+                      <div className={styles.itemMeta}>Wheel type: {firstItem.wheelType}</div>
+                    </div>
+                  </div>
+                </div>
+              </article>
+            );
+          })}
       </div>
+
+      {!loading && paginatedOrders.length === 0 && !error ? (
+        <div className="py-5 text-center text-secondary">No orders found.</div>
+      ) : null}
 
       <div className={styles.pagination} aria-label="Order history pagination">
         <button
           type="button"
           className={styles.paginationArrow}
           onClick={() => setCurrentPage((page) => Math.max(1, page - 1))}
-          disabled={currentPage === 1}
+          disabled={safePage === 1}
           aria-label="Previous page"
         >
           <i className={`fa-solid fa-angle-left ${styles.arrowIcon}`}></i>
@@ -157,8 +152,8 @@ export default function OrderHistory({ showIntro = true }) {
             key={page}
             type="button"
             onClick={() => setCurrentPage(page)}
-            className={`${styles.paginationButton} ${currentPage === page ? styles.paginationButtonActive : ""}`}
-            aria-current={currentPage === page ? "page" : undefined}
+            className={`${styles.paginationButton} ${safePage === page ? styles.paginationButtonActive : ""}`}
+            aria-current={safePage === page ? "page" : undefined}
           >
             {page}
           </button>
@@ -168,7 +163,7 @@ export default function OrderHistory({ showIntro = true }) {
           type="button"
           className={styles.paginationArrow}
           onClick={() => setCurrentPage((page) => Math.min(TOTAL_PAGES, page + 1))}
-          disabled={currentPage === TOTAL_PAGES}
+          disabled={safePage === TOTAL_PAGES}
           aria-label="Next page"
         >
           <i className={`fa-solid fa-angle-right ${styles.arrowIcon}`}></i>

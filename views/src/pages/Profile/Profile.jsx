@@ -1,8 +1,9 @@
-import { useState } from "react";
-import { Link, NavLink } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { Link, NavLink, useNavigate } from "react-router-dom";
 import AuthField from "../../components/Auth/AuthField";
 import Footer from "../../components/Footer/Footer";
 import Navbar from "../../components/Navbar/Navbar";
+import { useAuth } from "../../context/AuthContext";
 import styles from "./Profile.module.css";
 
 const initialProfileData = {
@@ -78,10 +79,15 @@ function getVisibleError(isSubmitted, touched, field, error) {
 }
 
 export default function Profile() {
+  const navigate = useNavigate();
+  const { user, logout, updateProfile, changePassword } = useAuth();
   const [profileData, setProfileData] = useState(initialProfileData);
   const [profileErrors, setProfileErrors] = useState(initialProfileErrors);
   const [profileTouched, setProfileTouched] = useState(initialProfileTouched);
   const [profileSubmitted, setProfileSubmitted] = useState(false);
+  const [profileMessage, setProfileMessage] = useState("");
+  const [profileSubmitError, setProfileSubmitError] = useState("");
+  const [profileSaving, setProfileSaving] = useState(false);
 
   const [passwordData, setPasswordData] = useState(initialPasswordData);
   const [passwordErrors, setPasswordErrors] = useState(initialPasswordErrors);
@@ -89,8 +95,18 @@ export default function Profile() {
   const [passwordSubmitted, setPasswordSubmitted] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [passwordMessage, setPasswordMessage] = useState("");
+  const [passwordSubmitError, setPasswordSubmitError] = useState("");
+  const [passwordSaving, setPasswordSaving] = useState(false);
 
-  const displayName = profileData.fullName.trim() || "Account";
+  useEffect(() => {
+    if (user?.name) {
+      setProfileData({ fullName: user.name });
+      setProfileErrors(validateProfileForm({ fullName: user.name }));
+    }
+  }, [user]);
+
+  const displayName = profileData.fullName.trim() || user?.name || "Account";
   const avatarLetter = displayName.charAt(0).toUpperCase();
 
   const handleProfileChange = (event) => {
@@ -122,6 +138,24 @@ export default function Profile() {
     if (Object.values(nextErrors).some(Boolean)) {
       return;
     }
+
+    const submitProfile = async () => {
+      try {
+        setProfileSaving(true);
+        setProfileSubmitError("");
+        setProfileMessage("");
+        await updateProfile({ name: profileData.fullName.trim() });
+        setProfileSubmitted(false);
+        setProfileTouched({ fullName: false });
+        setProfileMessage("Profile updated.");
+      } catch (error) {
+        setProfileSubmitError(error.message || "Unable to update profile");
+      } finally {
+        setProfileSaving(false);
+      }
+    };
+
+    submitProfile();
   };
 
   const handlePasswordChange = (event) => {
@@ -158,12 +192,35 @@ export default function Profile() {
       return;
     }
 
-    setPasswordData(initialPasswordData);
-    setPasswordErrors(initialPasswordErrors);
-    setPasswordTouched(initialPasswordTouched);
-    setPasswordSubmitted(false);
-    setShowNewPassword(false);
-    setShowConfirmPassword(false);
+    const submitPassword = async () => {
+      try {
+        setPasswordSaving(true);
+        setPasswordSubmitError("");
+        setPasswordMessage("");
+        await changePassword({
+          currentPassword: passwordData.currentPassword,
+          newPassword: passwordData.newPassword,
+        });
+        setPasswordData(initialPasswordData);
+        setPasswordErrors(initialPasswordErrors);
+        setPasswordTouched(initialPasswordTouched);
+        setPasswordSubmitted(false);
+        setShowNewPassword(false);
+        setShowConfirmPassword(false);
+        setPasswordMessage("Password updated.");
+      } catch (error) {
+        setPasswordSubmitError(error.message || "Unable to update password");
+      } finally {
+        setPasswordSaving(false);
+      }
+    };
+
+    submitPassword();
+  };
+
+  const handleLogout = async () => {
+    await logout();
+    navigate("/login");
   };
 
   return (
@@ -211,10 +268,15 @@ export default function Profile() {
                   Order History
                 </NavLink>
 
-                <Link className={`${styles.navButton} ${styles.logoutLink}`} to="/login">
+                <button
+                  type="button"
+                  className={`${styles.navButton} ${styles.logoutLink}`}
+                  onClick={handleLogout}
+                  style={{ background: "none", border: 0, padding: 0, width: "100%", textAlign: "left" }}
+                >
                   <i className="fas fa-right-from-bracket"></i>
                   Logout
-                </Link>
+                </button>
               </nav>
             </aside>
 
@@ -245,10 +307,22 @@ export default function Profile() {
                       />
                     </div>
 
+                    {profileMessage ? (
+                      <div className="alert alert-success py-2 mb-3" role="alert">
+                        {profileMessage}
+                      </div>
+                    ) : null}
+
+                    {profileSubmitError ? (
+                      <div className="alert alert-danger py-2 mb-3" role="alert">
+                        {profileSubmitError}
+                      </div>
+                    ) : null}
+
                     <div className={styles.actionsRow}>
-                      <button type="submit" className={styles.primaryButton}>
+                      <button type="submit" className={styles.primaryButton} disabled={profileSaving}>
                         <i className="fas fa-floppy-disk"></i>
-                        Save Changes
+                        {profileSaving ? "Saving..." : "Save Changes"}
                       </button>
                     </div>
                   </form>
@@ -313,10 +387,22 @@ export default function Profile() {
                       />
                     </div>
 
+                    {passwordMessage ? (
+                      <div className="alert alert-success py-2 mb-3" role="alert">
+                        {passwordMessage}
+                      </div>
+                    ) : null}
+
+                    {passwordSubmitError ? (
+                      <div className="alert alert-danger py-2 mb-3" role="alert">
+                        {passwordSubmitError}
+                      </div>
+                    ) : null}
+
                     <div className={styles.actionsRow}>
-                      <button type="submit" className={styles.primaryButton}>
+                      <button type="submit" className={styles.primaryButton} disabled={passwordSaving}>
                         <i className="fas fa-lock"></i>
-                        Update Password
+                        {passwordSaving ? "Updating..." : "Update Password"}
                       </button>
                     </div>
                   </form>

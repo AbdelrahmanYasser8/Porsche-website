@@ -1,6 +1,7 @@
 import 'bootstrap/dist/css/bootstrap.min.css';
 import styles from './CarCard.module.css';
 import React from "react";
+import { Link } from "react-router-dom";
 
 
 const userIcon = <i className="fa-solid fa-user pe-2"></i>;
@@ -17,7 +18,7 @@ function fuleIcon(fuel) {
 
 
 
-export default function CarCard({ name, year, fuel, seats, price, image, status = "In Stock" }) {
+export default function CarCard({ id, name, year, fuel, seats, price, image, status = "In Stock" }) {
   const isOutOfStock = status === "Out of Stock";
 
   return (
@@ -40,13 +41,13 @@ export default function CarCard({ name, year, fuel, seats, price, image, status 
             <span>{userIcon} {seats} seats</span>
           </div>
         </div>
-        <a href='/CarDetails' className="mt-auto text-decoration-none">  
+        <Link to={`/CarDetails/${id}`} className="mt-auto text-decoration-none">
           <div className="mt-auto d-flex justify-content-center">
             <button className={`${styles.configureBtn} btn btn-dark rounded-2 py-2 mb-3`}>
               Configure
             </button>
           </div>
-        </a>
+        </Link>
       </div>
     </div>
   );

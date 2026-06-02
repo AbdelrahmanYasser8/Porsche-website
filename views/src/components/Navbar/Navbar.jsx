@@ -1,8 +1,13 @@
 import styles from "./Navbar.module.css";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "bootstrap/dist/js/bootstrap.bundle.min.js";
+import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from "../../context/AuthContext";
 
 export default function Navbar({ transparent = false }) {
+  const navigate = useNavigate();
+  const { user, logout } = useAuth();
+
   const navClass = `${styles.navbarCustom} ${
     transparent ? styles.transparentNavbar : styles.defaultNavbar
   } navbar navbar-expand-md container-fluid`;
@@ -27,11 +32,18 @@ export default function Navbar({ transparent = false }) {
     transparent ? styles.transparentToggle : styles.defaultToggle
   } navbar-toggler`;
 
+  const isAdmin = user?.role === "Admin";
+
+  const handleLogout = async () => {
+    await logout();
+    navigate("/login");
+  };
+
   return (
     <nav className={navClass}>
-      <a className={brandClass} href="/">
+      <Link className={brandClass} to="/">
         Porsche
-      </a>
+      </Link>
 
       <button
         className={toggleClass}
@@ -49,67 +61,114 @@ export default function Navbar({ transparent = false }) {
 
       <div className={menuClass} id="mainNavbar">
         <div className={styles.primaryLinks}>
-          <a className={linkClass} href="/">
+          <Link className={linkClass} to="/">
             Home
-          </a>
-          <a className={linkClass} href="/shop">
+          </Link>
+          <Link className={linkClass} to="/shop">
             Shop
-          </a>
-          <a className={linkClass} href="/about">
+          </Link>
+          <Link className={linkClass} to="/about">
             About
-          </a>
+          </Link>
         </div>
 
         <div className={styles.accountArea}>
           <div className={`${styles.accountDropdown} dropdown`}>
-            <a
+            <button
               className={`${styles.accountToggle} nav-link`}
-              href="#"
+              type="button"
               role="button"
               data-bs-toggle="dropdown"
               aria-expanded="false"
               aria-label="Open account menu"
             >
               <i className={iconClass}></i>
-            </a>
+            </button>
 
             <ul
               className={`${styles.dropdownMenu} dropdown-menu dropdown-menu-end`}
             >
-              <li>
-                <a className={`${styles.dropdownItem} dropdown-item`} href="/profile">
-                  <i className="fa-regular fa-user"></i>
-                  Profile
-                </a>
-              </li>
-              <li>
-                <a className={`${styles.dropdownItem} dropdown-item`} href="/orders">
-                  <i className="fa-solid fa-receipt"></i>
-                  Orders
-                </a>
-              </li>
-              <li>
-                <a className={`${styles.dropdownItem} dropdown-item`} href="/login">
-                  <i className="fa-solid fa-right-to-bracket"></i>
-                  Login
-                </a>
-              </li>
+              {user ? (
+                <>
+                  <li>
+                    <Link className={`${styles.dropdownItem} dropdown-item`} to="/profile">
+                      <i className="fa-regular fa-user"></i>
+                      Profile
+                    </Link>
+                  </li>
+                  <li>
+                    <Link className={`${styles.dropdownItem} dropdown-item`} to="/orders">
+                      <i className="fa-solid fa-receipt"></i>
+                      Orders
+                    </Link>
+                  </li>
+                  {isAdmin ? (
+                    <li>
+                      <Link className={`${styles.dropdownItem} dropdown-item`} to="/admin/dashboard">
+                        <i className="fa-solid fa-gauge-high"></i>
+                        Admin Dashboard
+                      </Link>
+                    </li>
+                  ) : null}
+                  <li>
+                  <button
+                    className={`${styles.dropdownItem} dropdown-item`}
+                    type="button"
+                    onClick={handleLogout}
+                    style={{ width: "100%", textAlign: "left" }}
+                  >
+                    <i className="fa-solid fa-right-from-bracket"></i>
+                    Logout
+                  </button>
+                  </li>
+                </>
+              ) : (
+                <li>
+                  <Link className={`${styles.dropdownItem} dropdown-item`} to="/login">
+                    <i className="fa-solid fa-right-to-bracket"></i>
+                    Login
+                  </Link>
+                </li>
+              )}
             </ul>
           </div>
 
           <div className={styles.mobileAccountLinks}>
-            <a className={`${linkClass} ${styles.mobileAccountLink}`} href="/profile">
-              <i className="fa-regular fa-user"></i>
-              Profile
-            </a>
-            <a className={`${linkClass} ${styles.mobileAccountLink}`} href="/orders">
-              <i className="fa-solid fa-receipt"></i>
-              Orders
-            </a>
-            <a className={`${linkClass} ${styles.mobileAccountLink}`} href="/login">
-              <i className="fa-solid fa-right-to-bracket"></i>
-              Login
-            </a>
+            {user ? (
+              <>
+                <Link className={`${linkClass} ${styles.mobileAccountLink}`} to="/profile">
+                  <i className="fa-regular fa-user"></i>
+                  Profile
+                </Link>
+                <Link className={`${linkClass} ${styles.mobileAccountLink}`} to="/orders">
+                  <i className="fa-solid fa-receipt"></i>
+                  Orders
+                </Link>
+                {isAdmin ? (
+                  <Link
+                    className={`${linkClass} ${styles.mobileAccountLink}`}
+                    to="/admin/dashboard"
+                  >
+                    <i className="fa-solid fa-gauge-high"></i>
+                    Admin Dashboard
+                  </Link>
+                ) : null}
+                <button
+                  className={`${linkClass} ${styles.mobileAccountLink}`}
+                  type="button"
+                  onClick={handleLogout}
+                  style={{ background: "none", border: 0, padding: 0, width: "100%", textAlign: "left" }}
+                >
+                  <i className="fa-solid fa-right-from-bracket"></i>
+                  Logout
+                </button>
+              </>
+            ) : (
+              <Link className={`${linkClass} ${styles.mobileAccountLink}`} to="/login">
+                <i className="fa-solid fa-right-to-bracket"></i>
+                Login
+              </Link>
+            )}
           </div>
         </div>
       </div>

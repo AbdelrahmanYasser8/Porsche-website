@@ -1,9 +1,10 @@
-import { useState } from "react";
-import { Link } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import AuthField from "../../components/Auth/AuthField";
 import AuthShell from "../../components/Auth/AuthShell";
 import authStyles from "../../components/Auth/AuthShell.module.css";
 import { validateLogin } from "../../components/Auth/authValidation";
+import { useAuth } from "../../context/AuthContext";
 
 const initialValues = {
   email: "",
@@ -16,13 +17,26 @@ const initialTouched = {
 };
 
 export default function Login() {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const { user, login } = useAuth();
   const [formData, setFormData] = useState(initialValues);
   const [errors, setErrors] = useState(validateLogin(initialValues));
   const [touched, setTouched] = useState(initialTouched);
   const [submitted, setSubmitted] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [submitError, setSubmitError] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const isVisible = (field) => submitted || touched[field];
+
+  useEffect(() => {
+    if (!user) {
+      return;
+    }
+
+    navigate(user.role === "Admin" ? "/admin/dashboard" : "/", { replace: true });
+  }, [navigate, user]);
 
   const handleChange = (event) => {
     const { name, value } = event.target;
@@ -53,6 +67,27 @@ export default function Login() {
     if (Object.values(nextErrors).some(Boolean)) {
       return;
     }
+
+    const redirectPath =
+      location.state?.from?.pathname || (user?.role === "Admin" ? "/admin/dashboard" : "/");
+
+    const submitLogin = async () => {
+      try {
+        setIsSubmitting(true);
+        setSubmitError("");
+        const nextUser = await login({
+          email: formData.email.trim(),
+          password: formData.password,
+        });
+        navigate(nextUser?.role === "Admin" ? "/admin/dashboard" : redirectPath, { replace: true });
+      } catch (error) {
+        setSubmitError(error.message || "Unable to sign in");
+      } finally {
+        setIsSubmitting(false);
+      }
+    };
+
+    submitLogin();
   };
 
   return (
@@ -92,8 +127,14 @@ export default function Login() {
           />
         </div>
 
-        <button type="submit" className={authStyles.submitButton}>
-          Sign In
+        {submitError ? (
+          <div className="alert alert-danger py-2 mb-3" role="alert">
+            {submitError}
+          </div>
+        ) : null}
+
+        <button type="submit" className={authStyles.submitButton} disabled={isSubmitting}>
+          {isSubmitting ? "Signing In..." : "Sign In"}
         </button>
 
         <p className={authStyles.footerText}>

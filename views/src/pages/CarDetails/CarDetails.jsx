@@ -3,9 +3,13 @@ import Navbar from "../../components/Navbar/Navbar";
 import Footer from "../../components/Footer/Footer";
 import Loader from "../../components/Loader/Loader";
 import React, { useRef, useEffect, Suspense, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { useGLTF, OrbitControls, Environment } from "@react-three/drei";
 import * as THREE from "three";
+import { carsApi } from "../../api/cars";
+import { ordersApi } from "../../api/orders";
+import { useAuth } from "../../context/AuthContext";
 import wheel1 from "../../assets/images/wheel_type1.png";
 import wheel2 from "../../assets/images/wheel_type2.png";
 import wheel3 from "../../assets/images/wheel_type3.png";
@@ -265,13 +269,102 @@ function CameraAnimator({ targetPosition, targetLookAt, orbitRef }) {
 }
 
 export default function CarDetails() {
-  const [selectedColor, setSelectedColor] = useState("Black");
-  const [selectedWheel, setSelectedWheel] = useState("wheel_type1");
+  const navigate = useNavigate();
+  const { id } = useParams();
+  const { user } = useAuth();
   const orbitRef = useRef();
   const [cameraTarget, setCameraTarget] = useState({
     position: [1.95, 0.51, 4.37],
     lookAt: [0, 0, 0],
   });
+  const [car, setCar] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [selectedColor, setSelectedColor] = useState("Black");
+  const [selectedWheel, setSelectedWheel] = useState("wheel_type1");
+  const [orderMessage, setOrderMessage] = useState("");
+  const [orderError, setOrderError] = useState("");
+  const [isOrdering, setIsOrdering] = useState(false);
+
+  const activeCar = car || {
+    name: "911 Carrera",
+    manufactureYear: 2026,
+    price: 200000,
+    description:
+      "The Porsche 911 Carrera is a high-performance sports car with iconic design, strong turbocharged power, and precise handling.",
+    horsepower: 640,
+    topSpeed: 205,
+    fuelType: "Gasoline",
+    seating: 4,
+    colors: "Black, White, Guards Red",
+    wheels: ["Wheel Type 1", "Wheel Type 2"],
+    status: "In Stock",
+  };
+
+  useEffect(() => {
+    let active = true;
+
+    const loadCar = async () => {
+      try {
+        setLoading(true);
+        setError("");
+
+        let response;
+        if (id) {
+          response = await carsApi.get(id);
+        } else {
+          const cars = await carsApi.list();
+          response = cars.find((item) => item.name === "911 Carrera") || cars[0] || null;
+        }
+
+        if (active) {
+          setCar(response || null);
+        }
+      } catch (fetchError) {
+        if (active) {
+          setError(fetchError.message || "Failed to load car details");
+          setCar(null);
+        }
+      } finally {
+        if (active) {
+          setLoading(false);
+        }
+      }
+    };
+
+    loadCar();
+
+    return () => {
+      active = false;
+    };
+  }, [id]);
+
+  const handlePlaceOrder = async () => {
+    if (!user) {
+      navigate("/login", { state: { from: { pathname: id ? `/CarDetails/${id}` : "/CarDetails" } } });
+      return;
+    }
+
+    try {
+      setIsOrdering(true);
+      setOrderError("");
+      setOrderMessage("");
+
+      await ordersApi.create({
+        product: activeCar.name,
+        color: selectedColor,
+        wheelType: selectedWheel,
+        amount: activeCar.price,
+      });
+
+      setOrderMessage("Order created successfully.");
+      navigate("/orders");
+    } catch (placeOrderError) {
+      setOrderError(placeOrderError.message || "Unable to place order");
+    } finally {
+      setIsOrdering(false);
+    }
+  };
 
   return (
     <>
@@ -313,23 +406,41 @@ export default function CarDetails() {
 
         <section className={styles.detailsColumn}>
           <div className={styles.detailsCard}>
-            <h1>911 Carrera</h1>
-            <p className="text-secondary">2026 model</p>
+            <h1>{activeCar.name}</h1>
+            <p className="text-secondary">{activeCar.manufactureYear || activeCar.year} model</p>
             <h5>Price</h5>
-            <p className="fs-2">$200,000</p>
+            <p className="fs-2">${Number(activeCar.price || 0).toLocaleString()}</p>
             <h5 className="my-4">Description</h5>
-            <p className="text-secondary">
-              The Porsche 911 Carrera is a high-performance sports car with
-              iconic design, strong turbocharged power, and precise handling.
-            </p>
+            <p className="text-secondary">{activeCar.description}</p>
             <h5 className="my-4">Colours</h5>
             <ColorSelector setColor={setSelectedColor} />
             <h5 className="my-4">Wheels</h5>
             <WheelSelector setWheel={setSelectedWheel} />
+
+            {error ? (
+              <div className="alert alert-danger mt-3 mb-0" role="alert">
+                {error}
+              </div>
+            ) : null}
+
+            {orderError ? (
+              <div className="alert alert-danger mt-3 mb-0" role="alert">
+                {orderError}
+              </div>
+            ) : null}
+
+            {orderMessage ? (
+              <div className="alert alert-success mt-3 mb-0" role="alert">
+                {orderMessage}
+              </div>
+            ) : null}
+
             <button
               className={`w-100 fs-5 rounded-3 mt-4 ${styles["place-order"] || ""}`}
+              onClick={handlePlaceOrder}
+              disabled={loading || isOrdering}
             >
-              Place Order
+              {isOrdering ? "Placing Order..." : "Place Order"}
             </button>
           </div>
 
@@ -337,22 +448,22 @@ export default function CarDetails() {
             <h5 className="mb-4">Full Specifications</h5>
             <div className="d-flex">
               <span className="text-secondary">Horsepower</span>
-              <span className="ms-auto ">640 hp</span>
+              <span className="ms-auto ">{activeCar.horsepower} hp</span>
             </div>
             <hr className="border-secondary" />
             <div className="d-flex">
               <span className="text-secondary">Top Speed</span>
-              <span className="ms-auto">205 mph</span>
+              <span className="ms-auto">{activeCar.topSpeed} mph</span>
             </div>
             <hr className="border-secondary" />
             <div className="d-flex">
               <span className="text-secondary">Fuel Type</span>
-              <span className="ms-auto">Gasoline</span>
+              <span className="ms-auto">{activeCar.fuelType}</span>
             </div>
             <hr className="border-secondary" />
             <div className="d-flex">
               <span className="text-secondary">Seating</span>
-              <span className="ms-auto">4</span>
+              <span className="ms-auto">{activeCar.seating}</span>
             </div>
           </div>
         </section>

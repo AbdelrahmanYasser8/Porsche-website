@@ -1,77 +1,98 @@
-import React, { useState, useEffect } from "react";
-import { useLocation } from "react-router-dom"; // Add this import
+import React, { useEffect, useMemo, useState } from "react";
+import { useLocation } from "react-router-dom";
 import "bootstrap/dist/css/bootstrap.min.css";
-import Navbar from '../../components/Navbar/Navbar';
-import Footer from '../../components/Footer/Footer';
-import CarCard from '../../components/CarCard/CarCard';
-import styles from './CarsListing.module.css';
-
-const images = import.meta.glob('../../assets/images/*', { eager: true });
-
-const imageMap = Object.fromEntries(
-  Object.entries(images).map(([path, module]) => {
-    const filename = path.split('/').pop().replace(/\.[^.]+$/, '');
-    return [filename, module.default];
-  })
-);
+import Navbar from "../../components/Navbar/Navbar";
+import Footer from "../../components/Footer/Footer";
+import CarCard from "../../components/CarCard/CarCard";
+import { carsApi } from "../../api/cars";
+import { getCarFallbackImage } from "../../utils/carAssets";
+import styles from "./CarsListing.module.css";
 
 const CATEGORIES = ["All", "SUV", "Sports", "Electric", "Sedan"];
 const YEARS = ["All", "2024", "2025", "2026"];
 
-const CARS = [
-  { id: 1, name: "911 GT3 RS", year: "2026", fuel: "Gasoline", seats: "2", price: 412000, category: "Sports", image: imageMap["GT3_RS"], status: "In Stock" },
-  { id: 2, name: "Taycan", year: "2025", fuel: "Electric", seats: "4", price: 130000, category: "Electric", image: imageMap["Taycan"], status: "In Stock" },
-  { id: 3, name: "Macan", year: "2026", fuel: "Gasoline", seats: "4", price: 90000, category: "SUV", image: imageMap["Macan"], status: "In Stock" },
-  { id: 4, name: "911 Carrera", year: "2026", fuel: "Gasoline", seats: "2", price: 185000, category: "Sedan", image: imageMap["911_Carrera"], status: "In Stock" },
-  { id: 5, name: "Taycan Turbo S", year: "2025", fuel: "Electric", seats: "4", price: 280000, category: "Electric", image: imageMap["Taycan_TurboS"], status: "In Stock" },
-  { id: 6, name: "Macan Electric", year: "2026", fuel: "Electric", seats: "4", price: 90000, category: "SUV", image: imageMap["Macan_Electric"], status: "Out of Stock" },
-  { id: 7, name: "Macan GTS", year: "2024", fuel: "Gasoline", seats: "4", price: 135000, category: "SUV", image: imageMap["Macan_GTS"], status: "In Stock" },
-  { id: 8, name: "Macan Turbo Electric", year: "2026", fuel: "Electric", seats: "4", price: 155000, category: "SUV", image: imageMap["Macan_TurboE"], status: "In Stock" },
-  { id: 9, name: "911 Targa 4 GTS", year: "2025", fuel: "Gasoline", seats: "2", price: 330000, category: "Sedan", image: imageMap["Targa_4GTS"], status: "In Stock" },
-  { id: 10, name: "911 Turbo S Cabriolet", year: "2026", fuel: "Gasoline", seats: "2", price: 450000, category: "Sports", image: imageMap["Turbo_S"], status: "In Stock" },
-];
-
-
 const getCategoryFromPath = (pathname) => {
-  const path = pathname.replace('/', '').toLowerCase();
-  
+  const path = pathname.replace("/", "").toLowerCase();
+
   switch (path) {
-    case 'shop/suv':
-      return 'SUV';
-    case 'shop/sports':
-      return 'Sports';
-    case 'shop/electric':
-      return 'Electric';
-    case 'shop/sedan':
-      return 'Sedan';
-    case 'shop':
-      return 'All';
+    case "shop/suv":
+      return "SUV";
+    case "shop/sports":
+      return "Sports";
+    case "shop/electric":
+      return "Electric";
+    case "shop/sedan":
+      return "Sedan";
+    case "shop":
+      return "All";
     default:
-      return 'All';
+      return "All";
   }
 };
 
 export default function CarListing() {
   const location = useLocation();
-  
+  const [cars, setCars] = useState([]);
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState("All");
   const [priceRange, setPriceRange] = useState(1000000);
   const [year, setYear] = useState("All");
-
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
   useEffect(() => {
     const categoryFromUrl = getCategoryFromPath(location.pathname);
     setCategory(categoryFromUrl);
   }, [location.pathname]);
 
-  const filtered = CARS.filter((car) => {
-    const matchesSearch = car.name.toLowerCase().includes(search.toLowerCase());
-    const matchesCategory = category === "All" || car.category === category;
-    const matchesPrice = car.price <= priceRange;
-    const matchesYear = year === "All" || car.year === year;
-    return matchesSearch && matchesCategory && matchesPrice && matchesYear;
-  });
+  useEffect(() => {
+    let active = true;
+
+    const loadCars = async () => {
+      try {
+        setLoading(true);
+        setError("");
+        const response = await carsApi.list();
+        if (active) {
+          setCars(response);
+        }
+      } catch (fetchError) {
+        if (active) {
+          setError(fetchError.message || "Failed to load cars");
+          setCars([]);
+        }
+      } finally {
+        if (active) {
+          setLoading(false);
+        }
+      }
+    };
+
+    loadCars();
+
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  const filtered = useMemo(() => {
+    const normalizedSearch = search.trim().toLowerCase();
+
+    return cars.filter((car) => {
+      const carYear = String(car.year ?? car.manufactureYear ?? "");
+      const matchesSearch =
+        !normalizedSearch ||
+        [car.name, car.make, car.category, carYear, String(car.price), car.status]
+          .join(" ")
+          .toLowerCase()
+          .includes(normalizedSearch);
+      const matchesCategory = category === "All" || car.category === category;
+      const matchesPrice = Number(car.price) <= priceRange;
+      const matchesYear = year === "All" || carYear === year;
+
+      return matchesSearch && matchesCategory && matchesPrice && matchesYear;
+    });
+  }, [cars, category, priceRange, search, year]);
 
   const handleReset = () => {
     setCategory("All");
@@ -87,12 +108,18 @@ export default function CarListing() {
         <h1 className={`${styles.pageTitle} mb-3`}>Browse our collection</h1>
         <p className="text-secondary fs-6 mb-4">Explore our extensive selection of premium vehicles</p>
 
+        {error ? (
+          <div className="alert alert-danger" role="alert">
+            {error}
+          </div>
+        ) : null}
+
         <div className={`input-group mb-5 ps-2 d-flex align-items-center ${styles.searchWrapper}`} style={{ maxWidth: 600, height: 50 }}>
           <i className="fa-solid fa-magnifying-glass fs-5 ps-1 border-0"></i>
           <input
             type="text"
             className={`form-control pb-2 ${styles.searchInput}`}
-            placeholder={"Search"}
+            placeholder="Search"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
@@ -147,7 +174,9 @@ export default function CarListing() {
                 onChange={(e) => setYear(e.target.value)}
               >
                 {YEARS.map((y) => (
-                  <option key={y} value={y}>{y}</option>
+                  <option key={y} value={y}>
+                    {y}
+                  </option>
                 ))}
               </select>
 
@@ -162,7 +191,12 @@ export default function CarListing() {
 
           <div className="col-12 col-md-9">
             <div className="row row-cols-1 row-cols-sm-2 row-cols-lg-3 g-3">
-              {filtered.length === 0 && (
+              {loading && (
+                <div className="col-12 text-center py-5 text-secondary">
+                  Loading vehicles...
+                </div>
+              )}
+              {!loading && filtered.length === 0 && (
                 <div className="col-12 text-center py-5 text-secondary">
                   No vehicles match your filters.
                 </div>
@@ -170,12 +204,13 @@ export default function CarListing() {
               {filtered.map((car) => (
                 <CarCard
                   key={car.id}
+                  id={car.id}
                   name={car.name}
-                  year={car.year}
-                  fuel={car.fuel}
-                  seats={car.seats}
+                  year={car.year ?? car.manufactureYear}
+                  fuel={car.fuelType}
+                  seats={car.seating}
                   price={car.price}
-                  image={car.image}
+                  image={getCarFallbackImage(car)}
                   status={car.status}
                 />
               ))}

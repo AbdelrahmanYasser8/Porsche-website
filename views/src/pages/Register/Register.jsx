@@ -1,9 +1,10 @@
-import { useState } from "react";
-import { Link } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import AuthField from "../../components/Auth/AuthField";
 import AuthShell from "../../components/Auth/AuthShell";
 import authStyles from "../../components/Auth/AuthShell.module.css";
 import { validateRegister } from "../../components/Auth/authValidation";
+import { useAuth } from "../../context/AuthContext";
 
 const initialValues = {
   fullName: "",
@@ -22,14 +23,27 @@ const initialTouched = {
 };
 
 export default function Register() {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const { user, register } = useAuth();
   const [formData, setFormData] = useState(initialValues);
   const [errors, setErrors] = useState(validateRegister(initialValues));
   const [touched, setTouched] = useState(initialTouched);
   const [submitted, setSubmitted] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [submitError, setSubmitError] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const isVisible = (field) => submitted || touched[field];
+
+  useEffect(() => {
+    if (!user) {
+      return;
+    }
+
+    navigate(user.role === "Admin" ? "/admin/dashboard" : "/", { replace: true });
+  }, [navigate, user]);
 
   const handleChange = (event) => {
     const { name, value, type, checked } = event.target;
@@ -66,6 +80,28 @@ export default function Register() {
     if (Object.values(nextErrors).some(Boolean)) {
       return;
     }
+
+    const redirectPath =
+      location.state?.from?.pathname || (user?.role === "Admin" ? "/admin/dashboard" : "/");
+
+    const submitRegister = async () => {
+      try {
+        setIsSubmitting(true);
+        setSubmitError("");
+        const nextUser = await register({
+          name: formData.fullName.trim(),
+          email: formData.email.trim(),
+          password: formData.password,
+        });
+        navigate(nextUser?.role === "Admin" ? "/admin/dashboard" : redirectPath, { replace: true });
+      } catch (error) {
+        setSubmitError(error.message || "Unable to create account");
+      } finally {
+        setIsSubmitting(false);
+      }
+    };
+
+    submitRegister();
   };
 
   return (
@@ -171,8 +207,14 @@ export default function Register() {
           ) : null}
         </div>
 
-        <button type="submit" className={authStyles.submitButton}>
-          Create Account
+        {submitError ? (
+          <div className="alert alert-danger py-2 mb-3" role="alert">
+            {submitError}
+          </div>
+        ) : null}
+
+        <button type="submit" className={authStyles.submitButton} disabled={isSubmitting}>
+          {isSubmitting ? "Creating..." : "Create Account"}
         </button>
 
         <p className={authStyles.footerText}>

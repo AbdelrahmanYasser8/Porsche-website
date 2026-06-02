@@ -1,12 +1,8 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import 'bootstrap/dist/css/bootstrap.min.css';
-import gt3 from '../../../assets/images/GT3_RS.avif';
-import macan from '../../../assets/images/Macan.avif';
-import taycan from '../../../assets/images/Taycan.avif';
-import carrera from '../../../assets/images/911_Carrera.avif';
-import turbo from '../../../assets/images/Turbo_S.avif';
-import macanElectric from '../../../assets/images/Macan_Electric.avif';
+import { carsApi } from "../../../api/cars";
+import { getCarFallbackImage } from "../../../utils/carAssets";
 import styles from './ManageCars.module.css';
 
 const wheelOptions = ['Wheel Type 1', 'Wheel Type 2', 'Wheel Type 3', 'Wheel Type 4'];
@@ -64,117 +60,6 @@ const initialFormTouched = {
   modelFileName: false,
 };
 
-const initialCars = [
-  {
-    id: 1,
-    image: turbo,
-    name: '911 Turbo S Cabriolet',
-    make: 'Porsche',
-    category: 'Sports',
-    year: 2026,
-    price: 450000,
-    description: 'Open-top performance model with grand touring comfort.',
-    colors: 'Black, White, Guards Red, Carrara White',
-    wheels: ['Wheel Type 1', 'Wheel Type 3'],
-    horsepower: 640,
-    topSpeed: 205,
-    fuelType: 'Gasoline',
-    seating: 2,
-    modelFileName: 'porsche-911-turbo-s.glb',
-    status: 'In Stock',
-  },
-  {
-    id: 2,
-    image: macan,
-    name: 'Macan',
-    make: 'Porsche',
-    category: 'SUV',
-    year: 2026,
-    price: 90000,
-    description: 'Compact luxury SUV tuned for daily comfort and sharp handling.',
-    colors: 'Black, Silver, White, Volcano Grey',
-    wheels: ['Wheel Type 2'],
-    horsepower: 261,
-    topSpeed: 144,
-    fuelType: 'Gasoline',
-    seating: 4,
-    modelFileName: 'porsche-macan.glb',
-    status: 'In Stock',
-  },
-  {
-    id: 3,
-    image: taycan,
-    name: 'Taycan',
-    make: 'Porsche',
-    category: 'Electric',
-    year: 2025,
-    price: 130000,
-    description: 'Electric sports sedan with instant torque and long-distance refinement.',
-    colors: 'Frozen Blue, Black, White, Carmine Red',
-    wheels: ['Wheel Type 1', 'Wheel Type 4'],
-    horsepower: 402,
-    topSpeed: 143,
-    fuelType: 'Electric',
-    seating: 4,
-    modelFileName: 'porsche-taycan.glb',
-    status: 'In Stock',
-  },
-  {
-    id: 4,
-    image: carrera,
-    name: '911 Carrera',
-    make: 'Porsche',
-    category: 'Sedan',
-    year: 2026,
-    price: 185000,
-    description: 'Core 911 experience with timeless design and everyday usability.',
-    colors: 'Black, White, Guards Red, Arctic Grey',
-    wheels: ['Wheel Type 2', 'Wheel Type 3'],
-    horsepower: 388,
-    topSpeed: 183,
-    fuelType: 'Gasoline',
-    seating: 2,
-    modelFileName: 'porsche-911-carrera.glb',
-    status: 'In Stock',
-  },
-  {
-    id: 5,
-    image: gt3,
-    name: '911 GT3 RS',
-    make: 'Porsche',
-    category: 'Sports',
-    year: 2026,
-    price: 412000,
-    description: 'Track-focused 911 with motorsport aerodynamics and naturally aspirated power.',
-    colors: 'White, Black, Python Green, Guards Red',
-    wheels: ['Wheel Type 3', 'Wheel Type 4'],
-    horsepower: 518,
-    topSpeed: 184,
-    fuelType: 'Gasoline',
-    seating: 2,
-    modelFileName: 'porsche-911-gt3-rs.glb',
-    status: 'In Stock',
-  },
-  {
-    id: 6,
-    image: macanElectric,
-    name: 'Macan Electric',
-    make: 'Porsche',
-    category: 'SUV',
-    year: 2026,
-    price: 90000,
-    description: 'All-electric Macan with compact SUV practicality and Porsche response.',
-    colors: 'White, Black, Provence, Oak Green',
-    wheels: ['Wheel Type 1', 'Wheel Type 2'],
-    horsepower: 355,
-    topSpeed: 137,
-    fuelType: 'Electric',
-    seating: 4,
-    modelFileName: 'porsche-macan-electric.glb',
-    status: 'Out of Stock',
-  },
-];
-
 function formatCurrency(value) {
   return `$${value.toLocaleString()}`;
 }
@@ -184,7 +69,7 @@ function toFormState(car) {
     name: car.name || '',
     make: car.make || 'Porsche',
     category: car.category || 'SUV',
-    manufactureYear: String(car.year || '2026'),
+    manufactureYear: String(car.year || car.manufactureYear || '2026'),
     price: String(car.price || ''),
     thumbnailFileName: car.thumbnailFileName || 'Current thumbnail',
     thumbnailPreview: car.image || '',
@@ -200,20 +85,14 @@ function toFormState(car) {
   };
 }
 
-function pickDefaultImage(category) {
-  if (category === 'SUV') {
-    return macan;
-  }
+function readFileAsDataUrl(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
 
-  if (category === 'Electric') {
-    return taycan;
-  }
-
-  if (category === 'Sedan') {
-    return carrera;
-  }
-
-  return gt3;
+    reader.onload = () => resolve(typeof reader.result === 'string' ? reader.result : '');
+    reader.onerror = () => reject(new Error('Failed to read image file'));
+    reader.readAsDataURL(file);
+  });
 }
 
 function isBlank(value) {
@@ -278,7 +157,7 @@ function getVisibleError(submitted, touched, field, error) {
 }
 
 export default function ManageCars() {
-  const [cars, setCars] = useState(initialCars);
+  const [cars, setCars] = useState([]);
   const [search, setSearch] = useState('');
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingCarId, setEditingCarId] = useState(null);
@@ -286,6 +165,40 @@ export default function ManageCars() {
   const [formErrors, setFormErrors] = useState(validateCarForm(emptyCarForm));
   const [formTouched, setFormTouched] = useState(initialFormTouched);
   const [formSubmitted, setFormSubmitted] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [pageError, setPageError] = useState('');
+  const [isSaving, setIsSaving] = useState(false);
+
+  useEffect(() => {
+    let active = true;
+
+    const loadCars = async () => {
+      try {
+        setLoading(true);
+        setPageError('');
+        const response = await carsApi.list();
+
+        if (active) {
+          setCars(response);
+        }
+      } catch (error) {
+        if (active) {
+          setPageError(error.message || 'Failed to load cars');
+          setCars([]);
+        }
+      } finally {
+        if (active) {
+          setLoading(false);
+        }
+      }
+    };
+
+    loadCars();
+
+    return () => {
+      active = false;
+    };
+  }, []);
 
   const totalCars = cars.length;
   const inStock = useMemo(
@@ -300,11 +213,12 @@ export default function ManageCars() {
     }
 
     return cars.filter((car) => {
+      const carYear = String(car.year || car.manufactureYear || '');
       const searchableValues = [
         car.name,
         car.make,
         car.category,
-        String(car.year),
+        carYear,
         String(car.price),
         car.description,
         car.colors,
@@ -349,7 +263,7 @@ export default function ManageCars() {
     setFormSubmitted(false);
   };
 
-  const handleFieldChange = (event) => {
+  const handleFieldChange = async (event) => {
     const { name, value, checked, type, files } = event.target;
 
     if (type === 'checkbox' && name === 'status') {
@@ -364,28 +278,34 @@ export default function ManageCars() {
     }
 
     if (type === 'file') {
-      if (name === 'thumbnailImage') {
-        const file = files?.[0];
+      try {
+        if (name === 'thumbnailImage') {
+          const file = files?.[0];
+          const thumbnailPreview = file ? await readFileAsDataUrl(file) : formData.thumbnailPreview;
+          const nextFormData = {
+            ...formData,
+            thumbnailFileName: file?.name || formData.thumbnailFileName,
+            thumbnailPreview,
+          };
+
+          setFormData(nextFormData);
+          setFormTouched((current) => ({ ...current, thumbnailFileName: true }));
+          setFormErrors(validateCarForm(nextFormData));
+          return;
+        }
+
         const nextFormData = {
           ...formData,
-          thumbnailFileName: file?.name || formData.thumbnailFileName,
-          thumbnailPreview: file ? URL.createObjectURL(file) : formData.thumbnailPreview,
+          modelFileName: files?.[0]?.name || formData.modelFileName,
         };
 
         setFormData(nextFormData);
-        setFormTouched((current) => ({ ...current, thumbnailFileName: true }));
+        setFormTouched((current) => ({ ...current, modelFileName: true }));
         setFormErrors(validateCarForm(nextFormData));
-        return;
+      } catch (error) {
+        setPageError(error.message || 'Unable to read selected file');
       }
 
-      const nextFormData = {
-        ...formData,
-        modelFileName: files?.[0]?.name || formData.modelFileName,
-      };
-
-      setFormData(nextFormData);
-      setFormTouched((current) => ({ ...current, modelFileName: true }));
-      setFormErrors(validateCarForm(nextFormData));
       return;
     }
 
@@ -457,7 +377,7 @@ export default function ManageCars() {
     );
   };
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault();
 
     const nextErrors = validateCarForm(formData);
@@ -499,40 +419,39 @@ export default function ManageCars() {
       seating: Number(formData.seating) || 0,
       modelFileName: formData.modelFileName,
       status: formData.status,
+      image: formData.thumbnailPreview || '',
     };
 
-    if (editingCarId) {
-      setCars((currentCars) =>
-        currentCars.map((car) =>
-          car.id === editingCarId
-            ? {
-                ...car,
-                ...normalizedCar,
-                image: formData.thumbnailPreview || car.image,
-              }
-            : car,
-        ),
-      );
-    } else {
-      setCars((currentCars) => {
-        const nextId = Math.max(...currentCars.map((car) => car.id), 0) + 1;
+    try {
+      setIsSaving(true);
+      setPageError('');
 
-        return [
-          {
-            ...normalizedCar,
-            id: nextId,
-            image: formData.thumbnailPreview || pickDefaultImage(normalizedCar.category),
-          },
-          ...currentCars,
-        ];
-      });
+      if (editingCarId) {
+        const updatedCar = await carsApi.update(editingCarId, normalizedCar);
+        setCars((currentCars) =>
+          currentCars.map((car) => (car.id === editingCarId ? updatedCar : car)),
+        );
+      } else {
+        const createdCar = await carsApi.create(normalizedCar);
+        setCars((currentCars) => [createdCar, ...currentCars]);
+      }
+
+      closeDialog();
+    } catch (error) {
+      setPageError(error.message || 'Unable to save car');
+    } finally {
+      setIsSaving(false);
     }
-
-    closeDialog();
   };
 
-  const handleDeleteCar = (carId) => {
-    setCars((currentCars) => currentCars.filter((car) => car.id !== carId));
+  const handleDeleteCar = async (carId) => {
+    try {
+      setPageError('');
+      await carsApi.remove(carId);
+      setCars((currentCars) => currentCars.filter((car) => car.id !== carId));
+    } catch (error) {
+      setPageError(error.message || 'Unable to delete car');
+    }
   };
 
   return (
@@ -552,6 +471,18 @@ export default function ManageCars() {
             Add New Car
           </button>
         </header>
+
+        {pageError ? (
+          <div className="alert alert-danger mb-4" role="alert">
+            {pageError}
+          </div>
+        ) : null}
+
+        {loading ? (
+          <div className="alert alert-secondary mb-4" role="status">
+            Loading cars...
+          </div>
+        ) : null}
 
         <section className={styles.controls} aria-label="Car filters">
           <label className={styles.searchBox} htmlFor="admin-car-search">
@@ -599,14 +530,14 @@ export default function ManageCars() {
                 {filteredCars.map((car) => (
                   <tr key={car.id}>
                     <td>
-                      <img className={styles.carImage} src={car.image} alt={car.name} />
+                      <img className={styles.carImage} src={getCarFallbackImage(car)} alt={car.name} />
                     </td>
                     <td>
                       <div className={styles.primaryText}>{car.name}</div>
                       <div className={styles.secondaryText}>{car.make}</div>
                     </td>
                     <td>{car.category}</td>
-                    <td>{car.year}</td>
+                    <td>{car.year ?? car.manufactureYear}</td>
                     <td>{formatCurrency(car.price)}</td>
                     <td>
                       <span
@@ -645,7 +576,7 @@ export default function ManageCars() {
             </table>
           </div>
 
-          {filteredCars.length === 0 ? (
+          {!loading && filteredCars.length === 0 ? (
             <div className={styles.emptyState}>No cars match your search.</div>
           ) : null}
         </section>
@@ -907,9 +838,9 @@ export default function ManageCars() {
               </div>
 
               <div className={styles.dialogActions}>
-                <button className={styles.saveButton} type="submit">
+                <button className={styles.saveButton} type="submit" disabled={isSaving}>
                   <i className="fa-regular fa-floppy-disk"></i>
-                  Save
+                  {isSaving ? 'Saving...' : 'Save'}
                 </button>
                 <button className={styles.cancelButton} type="button" onClick={closeDialog}>
                   Cancel

@@ -2,6 +2,11 @@ const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 
 const carSchema = new Schema({
+  make: {
+    type: String,
+    trim: true,
+    default: 'Porsche'
+  },
   name: {
     type: String,
     required: true,
@@ -51,6 +56,10 @@ const carSchema = new Schema({
   },
   image: {
     type: String
+  },
+  thumbnailFileName: {
+    type: String,
+    trim: true
   },
   modelFileName: {
     type: String

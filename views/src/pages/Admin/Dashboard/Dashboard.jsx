@@ -1,95 +1,44 @@
-import 'bootstrap/dist/css/bootstrap.min.css';
-import { Link } from 'react-router-dom';
-import Footer from '../../../components/Footer/Footer';
-import Navbar from '../../../components/Navbar/Navbar';
-import styles from './Dashboard.module.css';
-
-const recentOrders = [
-  {
-    id: '503051001',
-    customer: 'Sarah Johnson',
-    product: '911 GT3',
-    color: 'Python Green',
-    wheelType: 'Wheel Type 3',
-    amount: '$444,700',
-    status: 'Completed',
-    date: 'July 18, 2025',
-  },
-  {
-    id: '633002000',
-    customer: 'Michael Chen',
-    product: 'Macan',
-    color: 'Volcano Grey',
-    wheelType: 'Wheel Type 2',
-    amount: '$156,300',
-    status: 'Cancelled',
-    date: 'March 2026',
-  },
-  {
-    id: '100000008',
-    customer: 'Emily Davis',
-    product: 'Macan Electric',
-    color: 'Provence',
-    wheelType: 'Wheel Type 1',
-    amount: '$89,800',
-    status: 'Processing',
-    date: 'August 2024',
-  },
-  {
-    id: '100000009',
-    customer: 'John Smith',
-    product: '911 Carrera',
-    color: 'Arctic Grey',
-    wheelType: 'Wheel Type 3',
-    amount: '$118,900',
-    status: 'Completed',
-    date: 'September 2024',
-  },
-];
-
-const stats = [
-  {
-    label: 'Total Users',
-    value: '2,547',
-    icon: 'fa-solid fa-users',
-  },
-  {
-    label: 'Total Products',
-    value: '10',
-    icon: 'fa-solid fa-car-side',
-  },
-  {
-    label: 'Total Orders',
-    value: '9',
-    icon: 'fa-solid fa-bag-shopping',
-  },
-  {
-    label: 'Revenue',
-    value: '$1.25M',
-    icon: 'fa-solid fa-dollar-sign',
-  },
-];
+import { useEffect, useState } from "react";
+import "bootstrap/dist/css/bootstrap.min.css";
+import { Link } from "react-router-dom";
+import Footer from "../../../components/Footer/Footer";
+import Navbar from "../../../components/Navbar/Navbar";
+import { adminApi } from "../../../api/admin";
+import styles from "./Dashboard.module.css";
 
 const quickActions = [
   {
-    title: 'Manage Cars',
-    description: 'Add, edit, or retire vehicles from inventory.',
-    href: '/admin/cars',
-    icon: 'fa-solid fa-car-side',
+    title: "Manage Cars",
+    description: "Add, edit, or retire vehicles from inventory.",
+    href: "/admin/cars",
+    icon: "fa-solid fa-car-side",
   },
   {
-    title: 'Manage Users',
-    description: 'Review account records and customer access.',
-    href: '/admin/users',
-    icon: 'fa-solid fa-user-gear',
+    title: "Manage Users",
+    description: "Review account records and customer access.",
+    href: "/admin/users",
+    icon: "fa-solid fa-user-gear",
   },
   {
-    title: 'Manage Orders',
-    description: 'Track order status and delivery progress.',
-    href: '/admin/orders',
-    icon: 'fa-solid fa-clipboard-list',
+    title: "Manage Orders",
+    description: "Track order status and delivery progress.",
+    href: "/admin/orders",
+    icon: "fa-solid fa-clipboard-list",
   },
 ];
+
+function formatRevenue(value) {
+  if (!value) {
+    return "$0";
+  }
+
+  return new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: "USD",
+    notation: value >= 1000000 ? "compact" : "standard",
+    maximumFractionDigits: value >= 1000000 ? 2 : 0,
+  }).format(value);
+}
 
 function StatusBadge({ status }) {
   const statusClassMap = {
@@ -102,6 +51,71 @@ function StatusBadge({ status }) {
 }
 
 export default function Dashboard() {
+  const [dashboard, setDashboard] = useState({
+    stats: {
+      totalUsers: 0,
+      totalCars: 0,
+      totalOrders: 0,
+      revenue: 0,
+    },
+    recentOrders: [],
+  });
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    let active = true;
+
+    const loadDashboard = async () => {
+      try {
+        setLoading(true);
+        setError("");
+        const response = await adminApi.getDashboardSummary();
+
+        if (active) {
+          setDashboard(response);
+        }
+      } catch (fetchError) {
+        if (active) {
+          setError(fetchError.message || "Failed to load dashboard");
+        }
+      } finally {
+        if (active) {
+          setLoading(false);
+        }
+      }
+    };
+
+    loadDashboard();
+
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  const stats = [
+    {
+      label: "Total Users",
+      value: String(dashboard.stats.totalUsers),
+      icon: "fa-solid fa-users",
+    },
+    {
+      label: "Total Products",
+      value: String(dashboard.stats.totalCars),
+      icon: "fa-solid fa-car-side",
+    },
+    {
+      label: "Total Orders",
+      value: String(dashboard.stats.totalOrders),
+      icon: "fa-solid fa-bag-shopping",
+    },
+    {
+      label: "Revenue",
+      value: formatRevenue(dashboard.stats.revenue),
+      icon: "fa-solid fa-dollar-sign",
+    },
+  ];
+
   return (
     <div className={styles.page}>
       <Navbar />
@@ -117,6 +131,12 @@ export default function Dashboard() {
               </p>
             </div>
           </header>
+
+          {error ? (
+            <div className="alert alert-danger mb-4" role="alert">
+              {error}
+            </div>
+          ) : null}
 
           <section className={styles.statsGrid} aria-label="Dashboard summary">
             {stats.map((stat) => (
@@ -172,23 +192,38 @@ export default function Dashboard() {
                   </tr>
                 </thead>
                 <tbody>
-                  {recentOrders.map((order) => (
-                    <tr key={order.id}>
-                      <td>{order.id}</td>
-                      <td>{order.customer}</td>
-                      <td>
-                        <div>{order.product}</div>
-                        <div className={styles.secondaryText}>
-                          {order.color} - {order.wheelType}
-                        </div>
+                  {loading ? (
+                    <tr>
+                      <td colSpan="6" className="text-center text-secondary py-4">
+                        Loading dashboard...
                       </td>
-                      <td>{order.amount}</td>
-                      <td>
-                        <StatusBadge status={order.status} />
-                      </td>
-                      <td>{order.date}</td>
                     </tr>
-                  ))}
+                  ) : null}
+                  {!loading && dashboard.recentOrders.length === 0 ? (
+                    <tr>
+                      <td colSpan="6" className="text-center text-secondary py-4">
+                        No recent orders found.
+                      </td>
+                    </tr>
+                  ) : null}
+                  {!loading &&
+                    dashboard.recentOrders.map((order) => (
+                      <tr key={order.dbId}>
+                        <td>{order.id}</td>
+                        <td>{order.customer}</td>
+                        <td>
+                          <div>{order.product}</div>
+                          <div className={styles.secondaryText}>
+                            {order.color} - {order.wheelType}
+                          </div>
+                        </td>
+                        <td>{formatRevenue(order.amount)}</td>
+                        <td>
+                          <StatusBadge status={order.status} />
+                        </td>
+                        <td>{order.date}</td>
+                      </tr>
+                    ))}
                 </tbody>
               </table>
             </div>

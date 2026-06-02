@@ -14,6 +14,8 @@ import ManageCars from "./pages/Admin/ManageCars/ManageCars";
 import ManageUsers from "./pages/Admin/ManageUsers/ManageUsers";
 import ManageOrders from "./pages/Admin/ManageOrders/ManageOrders";
 import CookieConsent from "./components/Cookies/CookieConsent";
+import RequireAuth from "./components/Auth/RequireAuth";
+import { Navigate } from "react-router-dom";
 
 
 function App() {
@@ -28,17 +30,23 @@ function App() {
         <Route path="/shop/electric" element={<CarListing />} />
         <Route path="/shop/sedan" element={<CarListing />} />
         <Route path="/shop/all" element={<CarListing />} />
-        <Route path="/CarDetails" element={<CarDetails />} />
-        <Route path="/profile" element={<Profile />} />
-        <Route path="/orders" element={<Orders />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/privacy-policy" element={<PrivacyPolicy />} />
         <Route path="/terms-of-service" element={<TermsOfService />} />
-        <Route path="/admin/dashboard" element={<Dashboard />} />
-        <Route path="/admin/cars" element={<ManageCars />} />
-        <Route path="/admin/users" element={<ManageUsers />} />
-        <Route path="/admin/orders" element={<ManageOrders />} />
+        <Route path="/CarDetails" element={<CarDetails />} />
+        <Route path="/CarDetails/:id" element={<CarDetails />} />
+        <Route element={<RequireAuth />}>
+          <Route path="/profile" element={<Profile />} />
+          <Route path="/orders" element={<Orders />} />
+        </Route>
+        <Route element={<RequireAuth roles={["Admin"]} />}>
+          <Route path="/admin" element={<Navigate to="/admin/dashboard" replace />} />
+          <Route path="/admin/dashboard" element={<Dashboard />} />
+          <Route path="/admin/cars" element={<ManageCars />} />
+          <Route path="/admin/users" element={<ManageUsers />} />
+          <Route path="/admin/orders" element={<ManageOrders />} />
+        </Route>
       </Routes>
       <CookieConsent />
     </>

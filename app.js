@@ -18,13 +18,18 @@ mongoose
   .catch((err) => console.log("MongoDB connection error:", err));
 
 app.use(cors({ origin: "http://localhost:5173", credentials: true }));
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use(express.json({ limit: "10mb" }));
+app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 app.use(
   session({
+    name: "porsche.sid",
     secret: process.env.SESSION_SECRET || "your_secret_key_here",
     resave: false,
-    saveUninitialized: true,
+    saveUninitialized: false,
+    cookie: {
+      httpOnly: true,
+      sameSite: "lax",
+    },
   }),
 );
 
@@ -33,10 +38,14 @@ app.use(express.static(path.join(__dirname, "public")));
 const authRoutes = require("./routes/auth");
 const carRoutes = require("./routes/cars");
 const orderRoutes = require("./routes/orders");
+const adminRoutes = require("./routes/admin");
+const userRoutes = require("./routes/users");
 
 app.use("/api/auth", authRoutes);
 app.use("/api/cars", carRoutes);
 app.use("/api/orders", orderRoutes);
+app.use("/api/admin", adminRoutes);
+app.use("/api/users", userRoutes);
 
 app.get("/api/health", (req, res) => {
   res.json({ status: "ok" });
