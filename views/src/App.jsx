@@ -15,12 +15,13 @@ import ManageUsers from "./pages/Admin/ManageUsers/ManageUsers";
 import ManageOrders from "./pages/Admin/ManageOrders/ManageOrders";
 import CookieConsent from "./components/Cookies/CookieConsent";
 import RequireAuth from "./components/Auth/RequireAuth";
+import { ToastProvider } from "./components/Toast/ToastProvider";
 import { Navigate } from "react-router-dom";
 
 
 function App() {
   return (
-    <>
+    <ToastProvider>
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/about" element={<About />} />
@@ -49,7 +50,7 @@ function App() {
         </Route>
       </Routes>
       <CookieConsent />
-    </>
+    </ToastProvider>
   );
 }
 

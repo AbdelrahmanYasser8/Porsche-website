@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
-import { Link, NavLink, useNavigate } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
 import AuthField from "../../components/Auth/AuthField";
 import Footer from "../../components/Footer/Footer";
 import Navbar from "../../components/Navbar/Navbar";
+import { useToast } from "../../components/Toast/ToastProvider";
 import { useAuth } from "../../context/AuthContext";
 import styles from "./Profile.module.css";
 
@@ -81,12 +82,11 @@ function getVisibleError(isSubmitted, touched, field, error) {
 export default function Profile() {
   const navigate = useNavigate();
   const { user, logout, updateProfile, changePassword } = useAuth();
+  const { showToast } = useToast();
   const [profileData, setProfileData] = useState(initialProfileData);
   const [profileErrors, setProfileErrors] = useState(initialProfileErrors);
   const [profileTouched, setProfileTouched] = useState(initialProfileTouched);
   const [profileSubmitted, setProfileSubmitted] = useState(false);
-  const [profileMessage, setProfileMessage] = useState("");
-  const [profileSubmitError, setProfileSubmitError] = useState("");
   const [profileSaving, setProfileSaving] = useState(false);
 
   const [passwordData, setPasswordData] = useState(initialPasswordData);
@@ -95,8 +95,6 @@ export default function Profile() {
   const [passwordSubmitted, setPasswordSubmitted] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [passwordMessage, setPasswordMessage] = useState("");
-  const [passwordSubmitError, setPasswordSubmitError] = useState("");
   const [passwordSaving, setPasswordSaving] = useState(false);
 
   useEffect(() => {
@@ -142,14 +140,15 @@ export default function Profile() {
     const submitProfile = async () => {
       try {
         setProfileSaving(true);
-        setProfileSubmitError("");
-        setProfileMessage("");
         await updateProfile({ name: profileData.fullName.trim() });
         setProfileSubmitted(false);
         setProfileTouched({ fullName: false });
-        setProfileMessage("Profile updated.");
+        showToast({ variant: "success", message: "Profile updated." });
       } catch (error) {
-        setProfileSubmitError(error.message || "Unable to update profile");
+        showToast({
+          variant: "danger",
+          message: error.message || "Unable to update profile",
+        });
       } finally {
         setProfileSaving(false);
       }
@@ -195,8 +194,6 @@ export default function Profile() {
     const submitPassword = async () => {
       try {
         setPasswordSaving(true);
-        setPasswordSubmitError("");
-        setPasswordMessage("");
         await changePassword({
           currentPassword: passwordData.currentPassword,
           newPassword: passwordData.newPassword,
@@ -207,9 +204,12 @@ export default function Profile() {
         setPasswordSubmitted(false);
         setShowNewPassword(false);
         setShowConfirmPassword(false);
-        setPasswordMessage("Password updated.");
+        showToast({ variant: "success", message: "Password updated." });
       } catch (error) {
-        setPasswordSubmitError(error.message || "Unable to update password");
+        showToast({
+          variant: "danger",
+          message: error.message || "Unable to update password",
+        });
       } finally {
         setPasswordSaving(false);
       }
@@ -307,18 +307,6 @@ export default function Profile() {
                       />
                     </div>
 
-                    {profileMessage ? (
-                      <div className="alert alert-success py-2 mb-3" role="alert">
-                        {profileMessage}
-                      </div>
-                    ) : null}
-
-                    {profileSubmitError ? (
-                      <div className="alert alert-danger py-2 mb-3" role="alert">
-                        {profileSubmitError}
-                      </div>
-                    ) : null}
-
                     <div className={styles.actionsRow}>
                       <button type="submit" className={styles.primaryButton} disabled={profileSaving}>
                         <i className="fas fa-floppy-disk"></i>
@@ -386,18 +374,6 @@ export default function Profile() {
                         onTogglePasswordVisibility={() => setShowConfirmPassword((current) => !current)}
                       />
                     </div>
-
-                    {passwordMessage ? (
-                      <div className="alert alert-success py-2 mb-3" role="alert">
-                        {passwordMessage}
-                      </div>
-                    ) : null}
-
-                    {passwordSubmitError ? (
-                      <div className="alert alert-danger py-2 mb-3" role="alert">
-                        {passwordSubmitError}
-                      </div>
-                    ) : null}
 
                     <div className={styles.actionsRow}>
                       <button type="submit" className={styles.primaryButton} disabled={passwordSaving}>

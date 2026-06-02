@@ -9,6 +9,7 @@ import { useGLTF, OrbitControls, Environment } from "@react-three/drei";
 import * as THREE from "three";
 import { carsApi } from "../../api/cars";
 import { ordersApi } from "../../api/orders";
+import { useToast } from "../../components/Toast/ToastProvider";
 import { useAuth } from "../../context/AuthContext";
 import wheel1 from "../../assets/images/wheel_type1.png";
 import wheel2 from "../../assets/images/wheel_type2.png";
@@ -272,6 +273,7 @@ export default function CarDetails() {
   const navigate = useNavigate();
   const { id } = useParams();
   const { user } = useAuth();
+  const { showToast } = useToast();
   const orbitRef = useRef();
   const [cameraTarget, setCameraTarget] = useState({
     position: [1.95, 0.51, 4.37],
@@ -282,8 +284,6 @@ export default function CarDetails() {
   const [error, setError] = useState("");
   const [selectedColor, setSelectedColor] = useState("Black");
   const [selectedWheel, setSelectedWheel] = useState("wheel_type1");
-  const [orderMessage, setOrderMessage] = useState("");
-  const [orderError, setOrderError] = useState("");
   const [isOrdering, setIsOrdering] = useState(false);
 
   const activeCar = car || {
@@ -347,8 +347,6 @@ export default function CarDetails() {
 
     try {
       setIsOrdering(true);
-      setOrderError("");
-      setOrderMessage("");
 
       await ordersApi.create({
         product: activeCar.name,
@@ -357,10 +355,13 @@ export default function CarDetails() {
         amount: activeCar.price,
       });
 
-      setOrderMessage("Order created successfully.");
+      showToast({ variant: "success", message: "Order created successfully." });
       navigate("/orders");
     } catch (placeOrderError) {
-      setOrderError(placeOrderError.message || "Unable to place order");
+      showToast({
+        variant: "danger",
+        message: placeOrderError.message || "Unable to place order",
+      });
     } finally {
       setIsOrdering(false);
     }
@@ -420,18 +421,6 @@ export default function CarDetails() {
             {error ? (
               <div className="alert alert-danger mt-3 mb-0" role="alert">
                 {error}
-              </div>
-            ) : null}
-
-            {orderError ? (
-              <div className="alert alert-danger mt-3 mb-0" role="alert">
-                {orderError}
-              </div>
-            ) : null}
-
-            {orderMessage ? (
-              <div className="alert alert-success mt-3 mb-0" role="alert">
-                {orderMessage}
               </div>
             ) : null}
 

@@ -2,6 +2,44 @@ const bcrypt = require("bcryptjs");
 const User = require("../models/User");
 const { buildSessionUser, syncSessionUser } = require("../utils/session");
 
+const defaultAdminSeed = {
+  name: process.env.SEED_ADMIN_NAME || "Admin",
+  email: (process.env.SEED_ADMIN_EMAIL || "admin@porsche.com").trim().toLowerCase(),
+  password: process.env.SEED_ADMIN_PASSWORD || "Admin123!",
+};
+
+async function createSeedAdmin({ overwrite = false } = {}) {
+  const { name, email, password } = defaultAdminSeed;
+
+  if (!name || !email || !password) {
+    throw new Error("Seed admin name, email, and password must be configured");
+  }
+
+  const existingAdmin = await User.findOne({ email });
+  if (existingAdmin && !overwrite) {
+    return existingAdmin;
+  }
+
+  const hashedPassword = await bcrypt.hash(password, 10);
+
+  if (existingAdmin) {
+    existingAdmin.name = name;
+    existingAdmin.password = hashedPassword;
+    existingAdmin.role = "Admin";
+    existingAdmin.status = "Active";
+    await existingAdmin.save();
+    return existingAdmin;
+  }
+
+  return User.create({
+    name,
+    email,
+    password: hashedPassword,
+    role: "Admin",
+    status: "Active",
+  });
+}
+
 const register = async (req, res) => {
   try {
     const { name, email, password } = req.body;
@@ -143,4 +181,31 @@ const changePassword = async (req, res) => {
   }
 };
 
-module.exports = { register, login, logout, getMe, updateProfile, changePassword };
+const seedAdmin = async (req, res) => {
+  try {
+    const admin = await createSeedAdmin({ overwrite: true });
+
+    res.status(201).json({
+      message: "Admin account seeded",
+      user: buildSessionUser(admin),
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+const ensureSeedAdmin = async () => {
+  const admin = await createSeedAdmin({ overwrite: false });
+  return buildSessionUser(admin);
+};
+
+module.exports = {
+  register,
+  login,
+  logout,
+  getMe,
+  updateProfile,
+  changePassword,
+  seedAdmin,
+  ensureSeedAdmin,
+};

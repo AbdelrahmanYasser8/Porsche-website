@@ -4,6 +4,7 @@ import AuthField from "../../components/Auth/AuthField";
 import AuthShell from "../../components/Auth/AuthShell";
 import authStyles from "../../components/Auth/AuthShell.module.css";
 import { validateRegister } from "../../components/Auth/authValidation";
+import { useToast } from "../../components/Toast/ToastProvider";
 import { useAuth } from "../../context/AuthContext";
 
 const initialValues = {
@@ -26,13 +27,13 @@ export default function Register() {
   const navigate = useNavigate();
   const location = useLocation();
   const { user, register } = useAuth();
+  const { showToast } = useToast();
   const [formData, setFormData] = useState(initialValues);
   const [errors, setErrors] = useState(validateRegister(initialValues));
   const [touched, setTouched] = useState(initialTouched);
   const [submitted, setSubmitted] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [submitError, setSubmitError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const isVisible = (field) => submitted || touched[field];
@@ -87,7 +88,6 @@ export default function Register() {
     const submitRegister = async () => {
       try {
         setIsSubmitting(true);
-        setSubmitError("");
         const nextUser = await register({
           name: formData.fullName.trim(),
           email: formData.email.trim(),
@@ -95,7 +95,10 @@ export default function Register() {
         });
         navigate(nextUser?.role === "Admin" ? "/admin/dashboard" : redirectPath, { replace: true });
       } catch (error) {
-        setSubmitError(error.message || "Unable to create account");
+        showToast({
+          variant: "danger",
+          message: error.message || "Unable to create account",
+        });
       } finally {
         setIsSubmitting(false);
       }
@@ -206,12 +209,6 @@ export default function Register() {
             </p>
           ) : null}
         </div>
-
-        {submitError ? (
-          <div className="alert alert-danger py-2 mb-3" role="alert">
-            {submitError}
-          </div>
-        ) : null}
 
         <button type="submit" className={authStyles.submitButton} disabled={isSubmitting}>
           {isSubmitting ? "Creating..." : "Create Account"}
