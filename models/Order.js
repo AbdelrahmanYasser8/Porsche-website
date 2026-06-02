@@ -2,11 +2,17 @@ const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 
 const orderSchema = new Schema({
+   orderId: {
+  type: String,
+  unique: true,
+  trim: true
+},
   customer: {
     type: String,
     required: true,
     trim: true
   },
+ 
   email: {
     type: String,
     required: true,
