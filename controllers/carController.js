@@ -1,8 +1,41 @@
 const Car = require("../models/Car");
+const mongoose = require("mongoose");
 const {
   normalizeCarInput,
   serializeCar,
 } = require("../utils/serializers");
+
+const GridFSBucket = mongoose.mongo.GridFSBucket;
+const ObjectId = mongoose.mongo.ObjectId;
+
+function getGridFsBucket() {
+  const db = mongoose.connection.db;
+  if (!db) {
+    throw new Error("Database connection is not ready");
+  }
+
+  return new GridFSBucket(db, { bucketName: "carModels" });
+}
+
+function uploadBufferToGridFs(buffer, { filename, contentType }) {
+  return new Promise((resolve, reject) => {
+    const bucket = getGridFsBucket();
+    const uploadStream = bucket.openUploadStream(filename, {
+      contentType: contentType || "application/octet-stream",
+    });
+
+    uploadStream.on("error", reject);
+    uploadStream.on("finish", () => {
+      resolve({
+        fileId: uploadStream.id.toString(),
+        filename,
+        contentType: contentType || "application/octet-stream",
+      });
+    });
+
+    uploadStream.end(buffer);
+  });
+}
 
 const getAll = async (req, res) => {
   try {
@@ -34,6 +67,63 @@ const getById = async (req, res) => {
     const car = await Car.findById(req.params.id);
     if (!car) return res.status(404).json({ error: 'Car not found' });
     res.json(serializeCar(car));
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+const getModel = async (req, res) => {
+  try {
+    const car = await Car.findById(req.params.id);
+    if (!car || !car.modelFileId) {
+      return res.status(404).json({ error: "Model not found" });
+    }
+
+    const bucket = getGridFsBucket();
+    const fileId = new ObjectId(car.modelFileId);
+    const files = await bucket.find({ _id: fileId }).toArray();
+    const file = files[0];
+
+    if (!file) {
+      return res.status(404).json({ error: "Model file not found" });
+    }
+
+    res.setHeader("Content-Type", car.modelMimeType || file.contentType || "application/octet-stream");
+    res.setHeader(
+      "Content-Disposition",
+      `inline; filename="${car.modelFileName || file.filename || "model.glb"}"`,
+    );
+
+    const downloadStream = bucket.openDownloadStream(fileId);
+    downloadStream.on("error", (error) => {
+      if (!res.headersSent) {
+        res.status(404).json({ error: error.message || "Model file not found" });
+      } else {
+        res.destroy(error);
+      }
+    });
+    downloadStream.pipe(res);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+const uploadModel = async (req, res) => {
+  try {
+    const buffer = Buffer.isBuffer(req.body) ? req.body : Buffer.from(req.body || []);
+    if (!buffer.length) {
+      return res.status(400).json({ error: "Model file is required" });
+    }
+
+    const filename = (req.headers["x-file-name"] || "model.glb").toString();
+    const contentType = (req.headers["content-type"] || "application/octet-stream").toString();
+    const uploaded = await uploadBufferToGridFs(buffer, { filename, contentType });
+
+    res.status(201).json({
+      modelFileId: uploaded.fileId,
+      modelFileName: uploaded.filename,
+      modelMimeType: uploaded.contentType,
+    });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -115,4 +205,4 @@ const seedData = [
   modelFileName: "",
 }));
 
-module.exports = { getAll, getById, create, update, remove, seed };
+module.exports = { getAll, getById, getModel, uploadModel, create, update, remove, seed };

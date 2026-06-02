@@ -64,6 +64,15 @@ const carSchema = new Schema({
   modelFileName: {
     type: String
   },
+  modelFileId: {
+    type: String
+  },
+  modelDataUrl: {
+    type: String
+  },
+  modelMimeType: {
+    type: String
+  },
   status: {
     type: String,
     enum: ['In Stock', 'Out of Stock'],

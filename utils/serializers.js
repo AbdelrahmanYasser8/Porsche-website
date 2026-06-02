@@ -74,6 +74,9 @@ function normalizeCarInput(body = {}) {
     image,
     thumbnailFileName: body.thumbnailFileName?.trim() || "",
     modelFileName: body.modelFileName?.trim() || "",
+    modelFileId: body.modelFileId?.trim() || "",
+    modelDataUrl: body.modelDataUrl || "",
+    modelMimeType: body.modelMimeType?.trim() || "",
     status: body.status || "In Stock",
   };
 }
@@ -82,6 +85,10 @@ function serializeCar(car) {
   const doc = car.toObject ? car.toObject() : car;
   const colorOptions = parseOptionList(doc.colors);
   const wheelOptions = parseOptionList(doc.wheels);
+  const modelMimeType = doc.modelMimeType || "";
+  const modelUrl = doc.modelFileId
+    ? `/api/cars/${doc._id.toString()}/model`
+    : doc.modelDataUrl || (doc.modelFileName ? `/${encodeURIComponent(doc.modelFileName)}` : "");
 
   return {
     id: doc._id.toString(),
@@ -103,7 +110,10 @@ function serializeCar(car) {
     image: doc.image || "",
     thumbnailFileName: doc.thumbnailFileName || "",
     modelFileName: doc.modelFileName || "",
-    modelUrl: doc.modelFileName ? `/${encodeURIComponent(doc.modelFileName)}` : "",
+    modelFileId: doc.modelFileId || "",
+    modelDataUrl: doc.modelDataUrl || "",
+    modelMimeType,
+    modelUrl,
     status: doc.status || "In Stock",
     createdAt: doc.createdAt,
     updatedAt: doc.updatedAt,

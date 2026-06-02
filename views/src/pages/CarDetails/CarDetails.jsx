@@ -236,8 +236,9 @@ function SceneButtons({ scenes, setCameraTarget }) {
   );
 }
 
-function PorscheModel({ color, wheel }) {
-  const gltf = useGLTF("/porsche%20model.glb");
+function PorscheModel({ color, wheel, modelUrl }) {
+  const resolvedModelUrl = modelUrl || "/porsche%20model.glb";
+  const gltf = useGLTF(resolvedModelUrl);
   const modelRef = useRef();
   const selectedWheelNode = getWheelNodeName(wheel);
 
@@ -473,7 +474,7 @@ export default function CarDetails() {
                     background={true}
                     environmentRotation={[7, 8, 0]}
                   />
-                  <PorscheModel color={selectedColor} wheel={selectedWheel} />
+                  <PorscheModel color={selectedColor} wheel={selectedWheel} modelUrl={car?.modelUrl} />
                 </Suspense>
                 <CameraAnimator
                   targetPosition={cameraTarget.position}

@@ -25,6 +25,8 @@ const emptyCarForm = {
   fuelType: 'Gasoline',
   seating: '',
   modelFileName: '',
+  modelFileId: '',
+  modelFile: null,
   status: 'In Stock',
 };
 
@@ -42,6 +44,8 @@ const initialFormErrors = {
   fuelType: '',
   seating: '',
   modelFileName: '',
+  modelFileId: '',
+  modelFile: null,
 };
 
 const initialFormTouched = {
@@ -81,6 +85,8 @@ function toFormState(car) {
     fuelType: car.fuelType || 'Gasoline',
     seating: String(car.seating || ''),
     modelFileName: car.modelFileName || '',
+    modelFileId: car.modelFileId || '',
+    modelFile: null,
     status: car.status || 'In Stock',
   };
 }
@@ -145,7 +151,7 @@ function validateCarForm(values) {
     nextErrors.wheels = 'Choose at least one wheel type.';
   }
 
-  if (isBlank(values.modelFileName)) {
+  if (isBlank(values.modelFileId) && !values.modelFile) {
     nextErrors.modelFileName = '3D model file is required.';
   }
 
@@ -294,9 +300,12 @@ export default function ManageCars() {
           return;
         }
 
+        const file = files?.[0];
         const nextFormData = {
           ...formData,
-          modelFileName: files?.[0]?.name || formData.modelFileName,
+          modelFileName: file?.name || formData.modelFileName,
+          modelFileId: file ? '' : formData.modelFileId,
+          modelFile: file || null,
         };
 
         setFormData(nextFormData);
@@ -418,6 +427,7 @@ export default function ManageCars() {
       fuelType: formData.fuelType,
       seating: Number(formData.seating) || 0,
       modelFileName: formData.modelFileName,
+      modelFileId: formData.modelFileId,
       status: formData.status,
       image: formData.thumbnailPreview || '',
     };
@@ -425,6 +435,12 @@ export default function ManageCars() {
     try {
       setIsSaving(true);
       setPageError('');
+
+      if (formData.modelFile) {
+        const uploadedModel = await carsApi.uploadModel(formData.modelFile);
+        normalizedCar.modelFileId = uploadedModel.modelFileId;
+        normalizedCar.modelFileName = uploadedModel.modelFileName || normalizedCar.modelFileName;
+      }
 
       if (editingCarId) {
         const updatedCar = await carsApi.update(editingCarId, normalizedCar);

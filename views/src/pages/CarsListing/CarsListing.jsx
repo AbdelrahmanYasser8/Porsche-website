@@ -11,6 +11,8 @@ import styles from "./CarsListing.module.css";
 const CATEGORIES = ["All", "SUV", "Sports", "Electric", "Sedan"];
 const YEARS = ["All", "2024", "2025", "2026"];
 
+const normalizeText = (value) => String(value || "").trim().toLowerCase();
+
 const getCategoryFromPath = (pathname) => {
   const path = pathname.replace("/", "").toLowerCase();
 
@@ -36,6 +38,7 @@ export default function CarListing() {
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState("All");
   const [priceRange, setPriceRange] = useState(1000000);
+  const [priceMax, setPriceMax] = useState(1000000);
   const [year, setYear] = useState("All");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -47,14 +50,21 @@ export default function CarListing() {
 
   useEffect(() => {
     let active = true;
+    const categoryQuery = categoryFromUrl => categoryFromUrl && categoryFromUrl !== "All" ? { category: categoryFromUrl } : {};
 
     const loadCars = async () => {
       try {
         setLoading(true);
         setError("");
-        const response = await carsApi.list();
+        const response = await carsApi.list(categoryQuery(getCategoryFromPath(location.pathname)));
         if (active) {
           setCars(response);
+          const nextPriceMax = Math.max(
+            ...response.map((car) => Number(car.price) || 0),
+            1000000,
+          );
+          setPriceMax(nextPriceMax);
+          setPriceRange(nextPriceMax);
         }
       } catch (fetchError) {
         if (active) {
@@ -73,7 +83,7 @@ export default function CarListing() {
     return () => {
       active = false;
     };
-  }, []);
+  }, [location.pathname]);
 
   const filtered = useMemo(() => {
     const normalizedSearch = search.trim().toLowerCase();
@@ -86,7 +96,8 @@ export default function CarListing() {
           .join(" ")
           .toLowerCase()
           .includes(normalizedSearch);
-      const matchesCategory = category === "All" || car.category === category;
+      const matchesCategory =
+        category === "All" || normalizeText(car.category) === normalizeText(category);
       const matchesPrice = Number(car.price) <= priceRange;
       const matchesYear = year === "All" || carYear === year;
 
@@ -96,7 +107,7 @@ export default function CarListing() {
 
   const handleReset = () => {
     setCategory("All");
-    setPriceRange(1000000);
+    setPriceRange(priceMax);
     setYear("All");
     setSearch("");
   };
@@ -156,7 +167,7 @@ export default function CarListing() {
                 type="range"
                 className={`form-range ${styles.formRange}`}
                 min={0}
-                max={1000000}
+                max={priceMax}
                 step={5000}
                 value={priceRange}
                 onChange={(e) => setPriceRange(Number(e.target.value))}
