@@ -124,35 +124,43 @@ export const ColorSelector = ({ options, value, setColor }) => {
   );
 };
 
-const wheels = [
-  { id: "wheel_type1", img: wheel1, name: "Wheel 1" },
-  { id: "wheel_type2", img: wheel2, name: "Wheel 2" },
-  { id: "wheel_type3", img: wheel3, name: "Wheel 3" },
-  { id: "wheel_type4", img: wheel4, name: "Wheel 4" },
-];
+const wheelImages = {
+  wheel_type1: wheel1,
+  wheel_type2: wheel2,
+  wheel_type3: wheel3,
+  wheel_type4: wheel4,
+};
 
-export const WheelSelector = ({ setWheel }) => {
-  const [selected, setSelected] = useState("wheel_type1");
+function getWheelImage(wheel, index = 0) {
+  const nodeName = getWheelNodeName(wheel);
+  return wheelImages[nodeName] || [wheel1, wheel2, wheel3, wheel4][index % 4];
+}
+
+export const WheelSelector = ({ options, value, setWheel }) => {
+  if (!options.length) {
+    return <p className="text-secondary mb-4">No wheel types are available for this car.</p>;
+  }
 
   return (
     <div className="d-flex gap-3 flex-wrap mb-4">
-      {wheels.map((wheel) => (
-        <div key={wheel.id}>
+      {options.map((wheel, index) => {
+        const wheelId = getWheelNodeName(wheel);
+        const safeId = `wheel-${index}-${normalizeText(wheel).replace(/[^a-z0-9]+/g, "-") || wheelId}`;
+
+        return (
+        <div key={safeId}>
           <input
             type="radio"
             className="btn-check"
             name="wheel"
-            id={wheel.id}
-            checked={selected === wheel.id}
-            onChange={() => {
-              setSelected(wheel.id);
-              setWheel(wheel.id);
-            }}
+            id={safeId}
+            checked={value === wheel}
+            onChange={() => setWheel(wheel)}
           />
 
           <label
-            htmlFor={wheel.id}
-            className={`btn d-flex align-items-center justify-content-center border rounded p-2  ${selected === wheel.id ? "border-black bg-secondary" : "border-secondary"}`}
+            htmlFor={safeId}
+            className={`btn d-flex align-items-center justify-content-center border rounded p-2  ${value === wheel ? "border-black bg-secondary" : "border-secondary"}`}
             style={{
               width: 90,
               height: 90,
@@ -160,13 +168,14 @@ export const WheelSelector = ({ setWheel }) => {
             }}
           >
             <img
-              src={wheel.img}
-              alt={wheel.name}
+              src={getWheelImage(wheel, index)}
+              alt={wheel}
               style={{ width: "100%", objectFit: "contain" }}
             />
           </label>
         </div>
-      ))}
+        );
+      })}
     </div>
   );
 };
@@ -230,6 +239,7 @@ function SceneButtons({ scenes, setCameraTarget }) {
 function PorscheModel({ color, wheel }) {
   const gltf = useGLTF("/porsche%20model.glb");
   const modelRef = useRef();
+  const selectedWheelNode = getWheelNodeName(wheel);
 
   useEffect(() => {
     if (!gltf.nodes) return;
@@ -259,15 +269,15 @@ function PorscheModel({ color, wheel }) {
       }
     });
 
-    if (gltf.nodes[wheel]) {
-      gltf.nodes[wheel].visible = true;
+    if (gltf.nodes[selectedWheelNode]) {
+      gltf.nodes[selectedWheelNode].visible = true;
     }
 
     const selectedBody = getColorNodeName(color);
     if (gltf.nodes[selectedBody]) {
       gltf.nodes[selectedBody].visible = true;
     }
-  }, [color, gltf, wheel]);
+  }, [color, gltf, selectedWheelNode]);
 
   return (
     <primitive
@@ -352,6 +362,7 @@ export default function CarDetails() {
   const [selectedWheel, setSelectedWheel] = useState("wheel_type1");
   const [isOrdering, setIsOrdering] = useState(false);
   const colorOptions = useMemo(() => parseOptionList(car?.colorOptions || car?.colors), [car]);
+  const wheelOptions = useMemo(() => parseOptionList(car?.wheelOptions || car?.wheels), [car]);
 
   useEffect(() => {
     if (!colorOptions.length) {
@@ -361,6 +372,15 @@ export default function CarDetails() {
 
     setSelectedColor((current) => (colorOptions.includes(current) ? current : colorOptions[0]));
   }, [colorOptions]);
+
+  useEffect(() => {
+    if (!wheelOptions.length) {
+      setSelectedWheel("");
+      return;
+    }
+
+    setSelectedWheel((current) => (wheelOptions.includes(current) ? current : wheelOptions[0]));
+  }, [wheelOptions]);
 
   useEffect(() => {
     let active = true;
@@ -494,7 +514,7 @@ export default function CarDetails() {
             <h5 className="my-4">Colours</h5>
             <ColorSelector options={colorOptions} value={selectedColor} setColor={setSelectedColor} />
             <h5 className="my-4">Wheels</h5>
-            <WheelSelector setWheel={setSelectedWheel} />
+            <WheelSelector options={wheelOptions} value={selectedWheel} setWheel={setSelectedWheel} />
 
             {error ? (
               <div className="alert alert-danger mt-3 mb-0" role="alert">
