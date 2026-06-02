@@ -7,11 +7,6 @@ const carSchema = new Schema({
     required: true,
     trim: true
   },
-  make: {
-    type: String,
-    default: 'Porsche',
-    trim: true
-  },
   category: {
     type: String,
     enum: ['SUV', 'Sports', 'Electric', 'Sedan', 'Coupe', 'Truck'],
