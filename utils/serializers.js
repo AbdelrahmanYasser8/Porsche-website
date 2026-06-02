@@ -30,6 +30,21 @@ function buildOrderNumber(order) {
   return `ORD-${year}-${suffix}`;
 }
 
+function parseOptionList(value) {
+  if (Array.isArray(value)) {
+    return value.map((item) => String(item).trim()).filter(Boolean);
+  }
+
+  if (typeof value === "string") {
+    return value
+      .split(",")
+      .map((item) => item.trim())
+      .filter(Boolean);
+  }
+
+  return [];
+}
+
 function normalizeCarInput(body = {}) {
   const wheels = Array.isArray(body.wheels)
     ? body.wheels
@@ -65,6 +80,8 @@ function normalizeCarInput(body = {}) {
 
 function serializeCar(car) {
   const doc = car.toObject ? car.toObject() : car;
+  const colorOptions = parseOptionList(doc.colors);
+  const wheelOptions = parseOptionList(doc.wheels);
 
   return {
     id: doc._id.toString(),
@@ -76,7 +93,9 @@ function serializeCar(car) {
     price: doc.price,
     description: doc.description || "",
     colors: doc.colors || "",
-    wheels: doc.wheels || [],
+    colorOptions,
+    wheels: wheelOptions,
+    wheelOptions,
     horsepower: doc.horsepower ?? 0,
     topSpeed: doc.topSpeed ?? 0,
     fuelType: doc.fuelType || "Gasoline",
@@ -84,6 +103,7 @@ function serializeCar(car) {
     image: doc.image || "",
     thumbnailFileName: doc.thumbnailFileName || "",
     modelFileName: doc.modelFileName || "",
+    modelUrl: doc.modelFileName ? `/${encodeURIComponent(doc.modelFileName)}` : "",
     status: doc.status || "In Stock",
     createdAt: doc.createdAt,
     updatedAt: doc.updatedAt,

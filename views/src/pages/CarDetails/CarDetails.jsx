@@ -2,7 +2,7 @@ import styles from "./CarDetails.module.css";
 import Navbar from "../../components/Navbar/Navbar";
 import Footer from "../../components/Footer/Footer";
 import Loader from "../../components/Loader/Loader";
-import React, { useRef, useEffect, Suspense, useState } from "react";
+import React, { useEffect, useMemo, useRef, Suspense, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { useGLTF, OrbitControls, Environment } from "@react-three/drei";
@@ -24,44 +24,102 @@ import scene6 from "../../assets/images/scene6.jpg";
 import scene7 from "../../assets/images/scene7.jpg";
 import scene8 from "../../assets/images/scene8.jpg";
 
-export const ColorSelector = ({ setColor }) => {
-  const [selected, setSelected] = useState("Black");
+function parseOptionList(value) {
+  if (Array.isArray(value)) {
+    return value.map((item) => String(item).trim()).filter(Boolean);
+  }
 
-  const colors = [
-    "Black",
-    "Green",
-    "Blue",
-    "Red",
-    "Yellow",
-    "Purple",
-    "Cayan",
-    "Orange",
-  ];
+  if (typeof value === "string") {
+    return value
+      .split(",")
+      .map((item) => item.trim())
+      .filter(Boolean);
+  }
 
+  return [];
+}
+
+function normalizeText(value) {
+  return String(value || "").trim().toLowerCase();
+}
+
+function getColorSwatch(color) {
+  const value = normalizeText(color);
+
+  if (value.includes("black")) return "#111111";
+  if (value.includes("white")) return "#f5f5f2";
+  if (value.includes("red")) return "#a81f2f";
+  if (value.includes("blue")) return "#1f4f9b";
+  if (value.includes("green")) return "#2e7d32";
+  if (value.includes("yellow")) return "#d8b100";
+  if (value.includes("purple")) return "#6a3fa0";
+  if (value.includes("orange")) return "#d06a1b";
+  if (value.includes("cyan") || value.includes("cayan")) return "#2aa8a1";
+
+  return "#8d8d8d";
+}
+
+function getColorNodeName(color) {
+  const value = normalizeText(color);
+
+  if (value.includes("red")) return "body_red";
+  if (value.includes("yellow")) return "body_yellow";
+  if (value.includes("black")) return "body_black";
+  if (value.includes("purple")) return "body_purple";
+  if (value.includes("green")) return "body_green";
+  if (value.includes("blue")) return "body_blue";
+  if (value.includes("cyan") || value.includes("cayan")) return "body_cayan";
+  if (value.includes("orange")) return "body_orange";
+
+  return "body_black";
+}
+
+function getWheelNodeName(wheel) {
+  const value = normalizeText(wheel).replace(/\s+/g, "");
+  const match = value.match(/wheel(?:type)?(?:_)?(\d+)/);
+
+  if (match) {
+    return `wheel_type${match[1]}`;
+  }
+
+  if (value.includes("1")) return "wheel_type1";
+  if (value.includes("2")) return "wheel_type2";
+  if (value.includes("3")) return "wheel_type3";
+  if (value.includes("4")) return "wheel_type4";
+
+  return "wheel_type1";
+}
+
+export const ColorSelector = ({ options, value, setColor }) => {
   return (
     <div className="d-flex flex-wrap">
-      {colors.map((color) => (
-        <div className="me-3 mb-3" key={color}>
-          <input
-            type="radio"
-            className="btn-check"
-            name="color"
-            id={color}
-            checked={selected === color}
-            onChange={() => {
-              setSelected(color);
-              setColor(color);
-            }}
-          />
+      {options.length ? (
+        options.map((color, index) => {
+          const safeId = `color-${index}-${normalizeText(color).replace(/[^a-z0-9]+/g, "-") || "option"}`;
 
-          <label
-            className="btn btn-outline-secondary rounded-3 px-4"
-            htmlFor={color}
-          >
-            {color}
-          </label>
-        </div>
-      ))}
+          return (
+          <div className="me-3 mb-3" key={safeId}>
+            <input
+              type="radio"
+              className="btn-check"
+              name="color"
+              id={safeId}
+              checked={value === color}
+              onChange={() => setColor(color)}
+            />
+
+            <label
+              className="btn btn-outline-secondary rounded-3 px-4"
+              htmlFor={safeId}
+            >
+              {color}
+            </label>
+          </div>
+          );
+        })
+      ) : (
+        <p className="text-secondary mb-0">No colors are available for this car.</p>
+      )}
     </div>
   );
 };
@@ -170,7 +228,7 @@ function SceneButtons({ scenes, setCameraTarget }) {
 }
 
 function PorscheModel({ color, wheel }) {
-  const gltf = useGLTF("/porsche model.glb");
+  const gltf = useGLTF("/porsche%20model.glb");
   const modelRef = useRef();
 
   useEffect(() => {
@@ -205,7 +263,7 @@ function PorscheModel({ color, wheel }) {
       gltf.nodes[wheel].visible = true;
     }
 
-    const selectedBody = `body_${color.toLowerCase()}`;
+    const selectedBody = getColorNodeName(color);
     if (gltf.nodes[selectedBody]) {
       gltf.nodes[selectedBody].visible = true;
     }
@@ -269,6 +327,14 @@ function CameraAnimator({ targetPosition, targetLookAt, orbitRef }) {
   return null;
 }
 
+function formatCarField(value, fallback = "N/A") {
+  if (value === null || value === undefined || value === "") {
+    return fallback;
+  }
+
+  return value;
+}
+
 export default function CarDetails() {
   const navigate = useNavigate();
   const { id } = useParams();
@@ -285,21 +351,16 @@ export default function CarDetails() {
   const [selectedColor, setSelectedColor] = useState("Black");
   const [selectedWheel, setSelectedWheel] = useState("wheel_type1");
   const [isOrdering, setIsOrdering] = useState(false);
+  const colorOptions = useMemo(() => parseOptionList(car?.colorOptions || car?.colors), [car]);
 
-  const activeCar = car || {
-    name: "911 Carrera",
-    manufactureYear: 2026,
-    price: 200000,
-    description:
-      "The Porsche 911 Carrera is a high-performance sports car with iconic design, strong turbocharged power, and precise handling.",
-    horsepower: 640,
-    topSpeed: 205,
-    fuelType: "Gasoline",
-    seating: 4,
-    colors: "Black, White, Guards Red",
-    wheels: ["Wheel Type 1", "Wheel Type 2"],
-    status: "In Stock",
-  };
+  useEffect(() => {
+    if (!colorOptions.length) {
+      setSelectedColor("");
+      return;
+    }
+
+    setSelectedColor((current) => (colorOptions.includes(current) ? current : colorOptions[0]));
+  }, [colorOptions]);
 
   useEffect(() => {
     let active = true;
@@ -314,7 +375,7 @@ export default function CarDetails() {
           response = await carsApi.get(id);
         } else {
           const cars = await carsApi.list();
-          response = cars.find((item) => item.name === "911 Carrera") || cars[0] || null;
+          response = cars[0] || null;
         }
 
         if (active) {
@@ -345,14 +406,22 @@ export default function CarDetails() {
       return;
     }
 
+    if (!car) {
+      showToast({
+        variant: "danger",
+        message: "Car details are not ready yet.",
+      });
+      return;
+    }
+
     try {
       setIsOrdering(true);
 
       await ordersApi.create({
-        product: activeCar.name,
+        product: car.name,
         color: selectedColor,
         wheelType: selectedWheel,
-        amount: activeCar.price,
+        amount: car.price,
       });
 
       showToast({ variant: "success", message: "Order created successfully." });
@@ -407,14 +476,23 @@ export default function CarDetails() {
 
         <section className={styles.detailsColumn}>
           <div className={styles.detailsCard}>
-            <h1>{activeCar.name}</h1>
-            <p className="text-secondary">{activeCar.manufactureYear || activeCar.year} model</p>
+            {car ? (
+              <>
+                <h1>{car.name}</h1>
+                <p className="text-secondary">{car.manufactureYear || car.year} model</p>
+              </>
+            ) : (
+              <>
+                <h1>Loading car details</h1>
+                <p className="text-secondary">Fetching the latest vehicle data from the backend...</p>
+              </>
+            )}
             <h5>Price</h5>
-            <p className="fs-2">${Number(activeCar.price || 0).toLocaleString()}</p>
+            <p className="fs-2">{car ? `$${Number(car.price || 0).toLocaleString()}` : "N/A"}</p>
             <h5 className="my-4">Description</h5>
-            <p className="text-secondary">{activeCar.description}</p>
+            <p className="text-secondary">{car?.description || "No description available."}</p>
             <h5 className="my-4">Colours</h5>
-            <ColorSelector setColor={setSelectedColor} />
+            <ColorSelector options={colorOptions} value={selectedColor} setColor={setSelectedColor} />
             <h5 className="my-4">Wheels</h5>
             <WheelSelector setWheel={setSelectedWheel} />
 
@@ -437,22 +515,22 @@ export default function CarDetails() {
             <h5 className="mb-4">Full Specifications</h5>
             <div className="d-flex">
               <span className="text-secondary">Horsepower</span>
-              <span className="ms-auto ">{activeCar.horsepower} hp</span>
+              <span className="ms-auto ">{formatCarField(car?.horsepower)} hp</span>
             </div>
             <hr className="border-secondary" />
             <div className="d-flex">
               <span className="text-secondary">Top Speed</span>
-              <span className="ms-auto">{activeCar.topSpeed} mph</span>
+              <span className="ms-auto">{formatCarField(car?.topSpeed)} mph</span>
             </div>
             <hr className="border-secondary" />
             <div className="d-flex">
               <span className="text-secondary">Fuel Type</span>
-              <span className="ms-auto">{activeCar.fuelType}</span>
+              <span className="ms-auto">{formatCarField(car?.fuelType)}</span>
             </div>
             <hr className="border-secondary" />
             <div className="d-flex">
               <span className="text-secondary">Seating</span>
-              <span className="ms-auto">{activeCar.seating}</span>
+              <span className="ms-auto">{formatCarField(car?.seating)}</span>
             </div>
           </div>
         </section>
