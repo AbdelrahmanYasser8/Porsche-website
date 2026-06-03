@@ -32,11 +32,11 @@ export default function CarCard({ id, name, year, fuel, seats, price, image, sta
             ) : null}
             <img src={image} alt={name} />
           </div>
-          <div className="d-flex justify-content-between mb-1" style={{ fontSize: "0.8rem", color: "#666" }}>
+          <div className="d-flex justify-content-between mb-1" style={{ fontSize: "0.8rem", color: "#999" }}>
             <span>{year}</span>
             <span>${price.toLocaleString()}</span>
           </div>
-          <div className="d-flex justify-content-between mb-3" style={{ fontSize: "0.8rem", color: "#666" }}>
+          <div className="d-flex justify-content-between mb-3" style={{ fontSize: "0.8rem", color: "#999" }}>
             <span>{fuleIcon(fuel)}{fuel}</span>
             <span>{userIcon} {seats} seats</span>
           </div>

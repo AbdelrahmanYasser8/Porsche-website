@@ -1,56 +1,53 @@
- 
 .pageTitle {
   font-family: 'Barlow Condensed', sans-serif;
-  color: #111;
+  color: var(--text-primary);
 }
- 
+
 .filterCard {
   border-radius: 10px;
-  background-color: #fff;
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-color);
 }
 
 .filterTitle {
   font-family: 'Barlow Condensed', sans-serif;
-  color: #111;
+  color: var(--text-primary);
 }
- 
+
 .filterLabel {
-  color: #999;
+  color: var(--text-muted);
 }
- 
+
 .formRadioInput:checked {
   background-color: #000000 !important;
 }
 
-/* .formRange::-webkit-slider-runnable-track {
-  background-color: #ff0000 !important;
-} */
-
 .formRange::-webkit-slider-thumb {
-  background-color: hsl(0, 0%, 0%) !important;
+  background-color: #000000 !important;
 }
 
 .formRange:focus::-webkit-slider-thumb {
-  background-color: hsl(0, 0%, 20%) !important;
+  background-color: #333333 !important;
 }
 
 .formRange:active::-webkit-slider-thumb {
-  background-color: hsl(0, 0%, 50%) !important;
+  background-color: #666666 !important;
 }
 
 .searchWrapper {
   border-radius: 10px;
   overflow: hidden;
-  box-shadow: 0 14px 32px rgba(15, 23, 42, 0.06);
-  border: 1px solid rgba(15, 23, 42, 0.08);
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--border-light);
+  background-color: var(--bg-secondary);
 }
 
 .searchWrapper:hover {
-  border: 1.5px solid #1A1A1A !important;
+  border-color: var(--text-primary) !important;
 }
 
 .searchWrapper:has(input:focus) {
-  background-color: hsl(0, 0%, 100%) !important;
+  background-color: var(--bg-secondary) !important;
 }
 
 .searchInput {
@@ -58,6 +55,11 @@
   height: 100%;
   border: 0 !important;
   box-shadow: none !important;
+  color: #999 !important;
+}
+
+.searchInput::placeholder {
+  color: #aaa !important;
 }
 
 .resetBtn {

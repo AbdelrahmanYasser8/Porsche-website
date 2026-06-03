@@ -5,11 +5,14 @@ import './styles/bootstrap-override.scss'
 import './index.css'
 import "@fortawesome/fontawesome-free/css/all.min.css";
 import { AuthProvider } from "./context/AuthContext.jsx";
+import { ThemeProvider } from "./context/ThemeContext.jsx";
 
 createRoot(document.getElementById('root')).render(
   <BrowserRouter>
-    <AuthProvider>
-      <App />
-    </AuthProvider>
+    <ThemeProvider>
+      <AuthProvider>
+        <App />
+      </AuthProvider>
+    </ThemeProvider>
   </BrowserRouter>
 )

@@ -1,8 +1,8 @@
 .page {
   min-height: 100vh;
   padding: 28px 0 56px;
-  background: #f4f4f2;
-  color: #111111;
+  background: var(--bg-primary);
+  color: var(--text-primary);
   font-family: 'Helvetica Neue', Arial, sans-serif;
 }
 
@@ -32,19 +32,19 @@
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  color: #8a6f16;
+  color: var(--accent-gold);
   font-size: 0.9rem;
   font-weight: 700;
   text-decoration: none;
 }
 
 .backLink:hover {
-  color: #111111;
+  color: var(--text-primary);
 }
 
 .header h1 {
   margin: 0;
-  color: #111111;
+  color: var(--text-primary);
   font-size: clamp(1.75rem, 2.4vw, 2.25rem);
   font-weight: 800;
   line-height: 1.1;
@@ -54,19 +54,19 @@
   width: min(430px, 100%);
   min-height: 50px;
   padding: 0 14px;
-  border: 1px solid #cfd4dc;
+  border: 1px solid var(--border-color);
   border-radius: 8px;
-  background: #ffffff;
+  background: var(--bg-secondary);
   display: flex;
   align-items: center;
   gap: 10px;
-  color: #8a94a6;
+  color: var(--text-muted);
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
 .searchBox:focus-within {
-  border-color: #111111;
-  box-shadow: 0 0 0 3px rgba(17, 17, 17, 0.08);
+  border-color: var(--text-primary);
+  box-shadow: 0 0 0 3px var(--hover-overlay);
 }
 
 .searchBox input {
@@ -74,7 +74,7 @@
   border: 0;
   outline: 0;
   background: transparent;
-  color: #111111;
+  color: var(--text-primary);
   font-size: 0.92rem;
 }
 
@@ -86,10 +86,10 @@
 
 .summaryCard,
 .tablePanel {
-  border: 1px solid #e4e4e4;
+  border: 1px solid var(--border-color);
   border-radius: 10px;
-  background: #ffffff;
-  box-shadow: 0 8px 26px rgba(0, 0, 0, 0.05);
+  background: var(--bg-card);
+  box-shadow: var(--shadow-sm);
 }
 
 .summaryCard {
@@ -99,13 +99,13 @@
 }
 
 .summaryCard span {
-  color: #555555;
+  color: var(--text-muted);
   font-size: 0.82rem;
   font-weight: 700;
 }
 
 .summaryCard strong {
-  color: #111111;
+  color: var(--text-primary);
   font-size: 1.45rem;
   line-height: 1;
 }
@@ -135,14 +135,14 @@
 .dataTable th,
 .dataTable td {
   padding: 16px 22px;
-  border-bottom: 1px solid #e4e4e4;
+  border-bottom: 1px solid var(--border-color);
   text-align: left;
   vertical-align: middle;
 }
 
 .dataTable th {
-  color: #333333;
-  background: #fbfbfb;
+  color: var(--text-secondary);
+  background: var(--bg-secondary);
   font-size: 0.72rem;
   font-weight: 900;
   letter-spacing: 0.08em;
@@ -150,7 +150,7 @@
 }
 
 .dataTable td {
-  color: #111111;
+  color: var(--text-primary);
   font-size: 0.9rem;
   font-weight: 600;
 }
@@ -169,7 +169,7 @@
   width: 36px;
   height: 36px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #111111, #8a6f16);
+  background: linear-gradient(135deg, var(--text-primary), var(--accent-gold));
   color: #ffffff;
   display: inline-flex;
   align-items: center;
@@ -193,9 +193,9 @@
 }
 
 .roleBadge {
-  background: #f5f1e6;
-  color: #7d6412;
-  border-color: #eadfbf;
+  background: var(--hover-bg);
+  color: var(--accent-gold);
+  border-color: var(--border-color);
 }
 
 .active {
@@ -252,7 +252,7 @@
 
 .emptyState {
   padding: 24px;
-  color: #666666;
+  color: var(--text-muted);
   font-weight: 700;
   text-align: center;
 }
