@@ -43,6 +43,13 @@ function normalizeText(value) {
   return String(value || "").trim().toLowerCase();
 }
 
+function normalizeNodeKey(value) {
+  return normalizeText(value)
+    .replace(/&/g, " and ")
+    .replace(/[^a-z0-9]+/g, "_")
+    .replace(/^_+|_+$/g, "");
+}
+
 function getColorSwatch(color) {
   const value = normalizeText(color);
 
@@ -59,19 +66,46 @@ function getColorSwatch(color) {
   return "#8d8d8d";
 }
 
-function getColorNodeName(color) {
-  const value = normalizeText(color);
+function getColorNodeCandidates(color) {
+  const normalized = normalizeNodeKey(color);
+  const aliasMap = {
+    black: ["body_black"],
+    white: ["body_white"],
+    red: ["body_red", "body_guards_red"],
+    guards_red: ["body_red", "body_guards_red"],
+    blue: ["body_blue"],
+    green: ["body_green"],
+    yellow: ["body_yellow"],
+    purple: ["body_purple"],
+    orange: ["body_orange"],
+    cyan: ["body_cayan", "body_cyan"],
+    cayan: ["body_cayan", "body_cyan"],
+    gray: ["body_gray", "body_grey"],
+    grey: ["body_gray", "body_grey"],
+    silver: ["body_silver"],
+  };
 
-  if (value.includes("red")) return "body_red";
-  if (value.includes("yellow")) return "body_yellow";
-  if (value.includes("black")) return "body_black";
-  if (value.includes("purple")) return "body_purple";
-  if (value.includes("green")) return "body_green";
-  if (value.includes("blue")) return "body_blue";
-  if (value.includes("cyan") || value.includes("cayan")) return "body_cayan";
-  if (value.includes("orange")) return "body_orange";
+  return [
+    ...(aliasMap[normalized] || []),
+    normalized ? `body_${normalized}` : "",
+    normalized ? `body_${normalized.replace(/_/g, "")}` : "",
+  ].filter(Boolean);
+}
 
-  return "body_black";
+function getAvailableBodyNodeNames(nodes = {}) {
+  return Object.keys(nodes).filter((name) => /^body_/i.test(name));
+}
+
+function getColorNodeName(nodes, color) {
+  const availableBodyNodes = getAvailableBodyNodeNames(nodes);
+  const candidates = getColorNodeCandidates(color);
+
+  return (
+    candidates.find((candidate) => Boolean(nodes?.[candidate])) ||
+    availableBodyNodes.find((nodeName) => normalizeNodeKey(nodeName) === normalizeNodeKey(color)) ||
+    availableBodyNodes[0] ||
+    "body_black"
+  );
 }
 
 function getWheelNodeName(wheel) {
@@ -245,21 +279,10 @@ function PorscheModel({ color, wheel, modelUrl }) {
   useEffect(() => {
     if (!gltf.nodes) return;
 
-    const bodies = [
-      "body_red",
-      "body_yellow",
-      "body_black",
-      "body_purple",
-      "body_green",
-      "body_blue",
-      "body_cayan",
-      "body_orange",
-    ];
+    const bodyNodes = getAvailableBodyNodeNames(gltf.nodes);
 
-    bodies.forEach((name) => {
-      if (gltf.nodes[name]) {
-        gltf.nodes[name].visible = false;
-      }
+    bodyNodes.forEach((name) => {
+      gltf.nodes[name].visible = false;
     });
 
     const wheels = ["wheel_type1", "wheel_type2", "wheel_type3", "wheel_type4"];
@@ -274,7 +297,7 @@ function PorscheModel({ color, wheel, modelUrl }) {
       gltf.nodes[selectedWheelNode].visible = true;
     }
 
-    const selectedBody = getColorNodeName(color);
+    const selectedBody = getColorNodeName(gltf.nodes, color);
     if (gltf.nodes[selectedBody]) {
       gltf.nodes[selectedBody].visible = true;
     }
