@@ -237,17 +237,36 @@
   color: #b4232f;
 }
 
-.warnButton:hover,
-.deleteButton:hover {
+.warnButton:hover:not(:disabled),
+.deleteButton:hover:not(:disabled) {
   transform: translateY(-1px);
 }
 
-.warnButton:hover {
+.warnButton:hover:not(:disabled) {
   background: #fff6e8;
 }
 
-.deleteButton:hover {
+.deleteButton:hover:not(:disabled) {
   background: #fff0f2;
+}
+
+.warnButton:disabled,
+.deleteButton:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.youBadge {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 1px 6px;
+  border-radius: 4px;
+  background: var(--hover-bg);
+  color: var(--text-muted);
+  font-size: 0.72rem;
+  font-weight: 700;
+  vertical-align: middle;
+  line-height: 1.4;
 }
 
 .emptyState {

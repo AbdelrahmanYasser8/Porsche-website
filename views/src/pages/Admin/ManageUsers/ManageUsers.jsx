@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import "bootstrap/dist/css/bootstrap.min.css";
 import { usersApi } from "../../../api/users";
+import { useAuth } from "../../../context/AuthContext";
 import styles from "./ManageUsers.module.css";
 
 const roleOptions = ["User", "Admin"];
@@ -16,6 +17,7 @@ function getInitials(name) {
 }
 
 export default function ManageUsers() {
+  const { user: currentUser } = useAuth();
   const [users, setUsers] = useState([]);
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
@@ -55,16 +57,22 @@ export default function ManageUsers() {
   const filteredUsers = useMemo(() => {
     const normalizedSearch = search.trim().toLowerCase();
 
-    if (!normalizedSearch) {
-      return users;
-    }
+    const matched = normalizedSearch
+      ? users.filter(
+          (user) =>
+            user.name.toLowerCase().includes(normalizedSearch) ||
+            user.email.toLowerCase().includes(normalizedSearch),
+        )
+      : [...users];
 
-    return users.filter(
-      (user) =>
-        user.name.toLowerCase().includes(normalizedSearch) ||
-        user.email.toLowerCase().includes(normalizedSearch),
-    );
-  }, [search, users]);
+    matched.sort((a, b) => {
+      if (a.id === currentUser?.id) return -1;
+      if (b.id === currentUser?.id) return 1;
+      return 0;
+    });
+
+    return matched;
+  }, [search, users, currentUser]);
 
   const totalOrders = users.reduce((total, user) => total + Number(user.ordersCount ?? user.orders ?? 0), 0);
   const activeUsers = users.filter((user) => user.status === "Active").length;
@@ -155,7 +163,7 @@ export default function ManageUsers() {
             <strong className={styles.dangerText}>{inactiveUsers}</strong>
           </article>
           <article className={styles.summaryCard}>
-            <span>Total Orders</span>
+            <span>Total Active Orders</span>
             <strong>{totalOrders}</strong>
           </article>
         </section>
@@ -175,64 +183,71 @@ export default function ManageUsers() {
                 </tr>
               </thead>
               <tbody>
-                {filteredUsers.map((user) => (
-                  <tr key={user.id}>
-                    <td>
-                      <div className={styles.userCell}>
-                        <span className={styles.avatar}>{getInitials(user.name)}</span>
-                        <span>{user.name}</span>
-                      </div>
-                    </td>
-                    <td>{user.email}</td>
-                    <td>
-                      <select
-                        className="form-select form-select-sm"
-                        value={user.role}
-                        onChange={(event) => handleRoleChange(user.id, event.target.value)}
-                        aria-label={`Update ${user.name} role`}
-                      >
-                        {roleOptions.map((role) => (
-                          <option key={role} value={role}>
-                            {role}
-                          </option>
-                        ))}
-                      </select>
-                    </td>
-                    <td>
-                      <span
-                        className={`${styles.statusBadge} ${
-                          user.status === "Active" ? styles.active : styles.inactive
-                        }`}
-                      >
-                        {user.status}
-                      </span>
-                    </td>
-                    <td>{user.joinDate}</td>
-                    <td>{user.ordersCount ?? user.orders ?? 0}</td>
-                    <td>
-                      <div className={styles.actions}>
-                        <button
-                          className={styles.warnButton}
-                          type="button"
-                          onClick={() => handleToggleUser(user.id, user.status)}
-                          aria-label={`Toggle ${user.name} status`}
-                          title="Toggle user status"
+                {filteredUsers.map((user) => {
+                  const isOwnAccount = currentUser?.id === user.id;
+
+                  return (
+                    <tr key={user.id}>
+                      <td>
+                        <div className={styles.userCell}>
+                          <span className={styles.avatar}>{getInitials(user.name)}</span>
+                          <span>{user.name}{isOwnAccount ? <span className={styles.youBadge}>You</span> : null}</span>
+                        </div>
+                      </td>
+                      <td>{user.email}</td>
+                      <td>
+                        <select
+                          className="form-select form-select-sm"
+                          value={user.role}
+                          disabled={isOwnAccount}
+                          onChange={(event) => handleRoleChange(user.id, event.target.value)}
+                          aria-label={`Update ${user.name} role`}
                         >
-                          <i className="fa-solid fa-ban"></i>
-                        </button>
-                        <button
-                          className={styles.deleteButton}
-                          type="button"
-                          onClick={() => handleDeleteUser(user.id)}
-                          aria-label={`Delete ${user.name}`}
-                          title="Delete user"
+                          {roleOptions.map((role) => (
+                            <option key={role} value={role}>
+                              {role}
+                            </option>
+                          ))}
+                        </select>
+                      </td>
+                      <td>
+                        <span
+                          className={`${styles.statusBadge} ${
+                            user.status === "Active" ? styles.active : styles.inactive
+                          }`}
                         >
-                          <i className="fa-regular fa-trash-can"></i>
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
+                          {user.status}
+                        </span>
+                      </td>
+                      <td>{user.joinDate}</td>
+                      <td>{user.ordersCount ?? user.orders ?? 0}</td>
+                      <td>
+                        <div className={styles.actions}>
+                          <button
+                            className={styles.warnButton}
+                            type="button"
+                            disabled={isOwnAccount}
+                            onClick={() => handleToggleUser(user.id, user.status)}
+                            aria-label={`Toggle ${user.name} status`}
+                            title="Toggle user status"
+                          >
+                            <i className="fa-solid fa-ban"></i>
+                          </button>
+                          <button
+                            className={styles.deleteButton}
+                            type="button"
+                            disabled={isOwnAccount}
+                            onClick={() => handleDeleteUser(user.id)}
+                            aria-label={`Delete ${user.name}`}
+                            title="Delete user"
+                          >
+                            <i className="fa-regular fa-trash-can"></i>
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>

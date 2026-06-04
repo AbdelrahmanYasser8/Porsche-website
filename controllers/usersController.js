@@ -126,7 +126,13 @@ async function deleteUser(req, res) {
       return res.status(404).json({ error: "User not found" });
     }
 
-    await Order.updateMany({ user: user._id }, { $unset: { user: "" } });
+    const processingOrders = await Order.find({ user: user._id, status: "Processing" });
+
+    for (const order of processingOrders) {
+      order.status = "Cancelled";
+      await order.save();
+    }
+
     res.json({ message: "User deleted" });
   } catch (error) {
     res.status(500).json({ error: error.message });

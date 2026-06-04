@@ -228,6 +228,24 @@
   border-color: #f5cfd1;
 }
 
+[data-theme="dark"] .completed {
+  background: rgba(29, 122, 59, 0.15);
+  color: #4cda7a;
+  border-color: rgba(29, 122, 59, 0.25);
+}
+
+[data-theme="dark"] .processing {
+  background: rgba(141, 101, 0, 0.15);
+  color: #f0b429;
+  border-color: rgba(141, 101, 0, 0.25);
+}
+
+[data-theme="dark"] .cancelled {
+  background: rgba(168, 70, 70, 0.15);
+  color: #f28b8b;
+  border-color: rgba(168, 70, 70, 0.25);
+}
+
 .statusSelect {
   min-width: 120px;
   min-height: 34px;
@@ -244,6 +262,34 @@
   border-color: var(--text-primary);
   outline: 0;
   box-shadow: 0 0 0 3px var(--hover-overlay);
+}
+
+.actionCell {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.deleteBtn {
+  padding: 0 12px;
+  height: 34px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: #b4232f;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  flex: 0 0 auto;
+  white-space: nowrap;
+}
+
+.deleteBtn:hover {
+  background: rgba(180, 35, 47, 0.08);
 }
 
 .emptyState {

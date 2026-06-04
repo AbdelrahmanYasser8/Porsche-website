@@ -46,14 +46,6 @@
   max-width: 64ch;
 }
 
-.panel {
-  padding: 28px;
-  border: 1px solid var(--border-color);
-  border-radius: 18px;
-  background: var(--bg-card);
-  box-shadow: var(--shadow-sm);
-}
-
 @media (max-width: 575.98px) {
   .content {
     padding: 28px 0 44px;
@@ -62,11 +54,6 @@
   .container {
     width: min(100% - 32px, 1180px);
     gap: 18px;
-  }
-
-  .panel {
-    padding: 22px;
-    border-radius: 16px;
   }
 
   .pageHeader {
