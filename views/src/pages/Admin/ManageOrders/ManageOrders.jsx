@@ -70,6 +70,16 @@ export default function ManageOrders() {
     .filter((order) => order.status !== "Cancelled")
     .reduce((total, order) => total + Number(order.amount || 0), 0);
 
+  const handleDeleteOrder = async (orderId) => {
+    try {
+      setPageError("");
+      await ordersApi.delete(orderId);
+      setOrders((currentOrders) => currentOrders.filter((order) => order.dbId !== orderId));
+    } catch (error) {
+      setPageError(error.message || "Unable to delete order");
+    }
+  };
+
   const handleStatusChange = async (orderId, status) => {
     try {
       setPageError("");
@@ -190,20 +200,31 @@ export default function ManageOrders() {
                     </td>
                     <td>{order.date}</td>
                     <td>
-                      <select
-                        className={styles.statusSelect}
-                        value={order.status}
-                        onChange={(event) => handleStatusChange(order.dbId, event.target.value)}
-                        aria-label={`Update ${order.id} status`}
-                      >
-                        {statusOptions
-                          .filter((status) => status !== "All")
-                          .map((status) => (
-                            <option key={status} value={status}>
-                              {status}
-                            </option>
-                          ))}
-                      </select>
+                      <div className={styles.actionCell}>
+                        <select
+                          className={styles.statusSelect}
+                          value={order.status}
+                          onChange={(event) => handleStatusChange(order.dbId, event.target.value)}
+                          aria-label={`Update ${order.id} status`}
+                        >
+                          {statusOptions
+                            .filter((status) => status !== "All")
+                            .map((status) => (
+                              <option key={status} value={status}>
+                                {status}
+                              </option>
+                            ))}
+                        </select>
+                        {/* The delete button. If needed.
+                         <button
+                          className={styles.deleteBtn}
+                          onClick={() => handleDeleteOrder(order.dbId)}
+                          aria-label={`Delete ${order.id}`}
+                        >
+                          <i className="fa-regular fa-trash-can"></i>
+                        </button>
+                         */}
+                      </div>
                     </td>
                   </tr>
                 ))}

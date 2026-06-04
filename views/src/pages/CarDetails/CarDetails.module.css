@@ -35,9 +35,10 @@
 }
 
 .detailsCard {
-    background-color: #ffffff;
+    background-color: var(--bg-card);
     border-radius: 16px;
     padding: 24px;
+    border: 1px solid var(--border-color);
 }
 
 .previewSticky {
@@ -49,7 +50,7 @@
     aspect-ratio: 3 / 2;
     overflow: hidden;
     border-radius: 16px;
-    background-color: #e7e7e7;
+    background-color: var(--bg-secondary);
 }
 
 .modelCanvas {
@@ -92,7 +93,7 @@
 
 .sceneButton:focus-visible,
 .sceneNav:focus-visible {
-    outline: 3px solid #111111;
+    outline: 3px solid var(--text-primary);
     outline-offset: 3px;
 }
 
@@ -114,9 +115,9 @@
     height: 38px;
     border: 0;
     border-radius: 50%;
-    background-color: rgba(255, 255, 255, 0.94);
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
-    color: #111111;
+    background-color: var(--bg-elevated);
+    box-shadow: var(--shadow-md);
+    color: var(--text-primary);
     cursor: pointer;
     transform: translateY(-50%);
 }
@@ -130,8 +131,8 @@
 }
 
 .place-order {
-    background-color: black;
-    color: white;
+    background-color: var(--text-primary);
+    color: var(--bg-primary);
     border: none;
     padding: 10px 20px;
     font-size: 16px;
@@ -141,7 +142,7 @@
 }
 
 .place-order:hover {
-    background-color: #333;
+    opacity: 0.8;
 }
 
 @media (min-width: 992px) {
@@ -200,7 +201,7 @@
 
     .previewPanel {
         width: 100%;
-        background-color: #f5f5f5;
+        background-color: var(--bg-primary);
         z-index: 20;
         gap: 12px;
     }

@@ -155,7 +155,7 @@ export default function CarListing() {
                   <label
                     className="form-check-label"
                     htmlFor={`cat-${cat}`}
-                    style={{ fontSize: "0.9rem", color: "#333", cursor: "pointer" }}
+                    style={{ fontSize: "0.9rem", color: "#666", cursor: "pointer" }}
                   >
                     {cat}
                   </label>

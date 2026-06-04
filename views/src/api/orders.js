@@ -19,4 +19,9 @@ export const ordersApi = {
       body: payload,
     });
   },
+  delete(id) {
+    return apiRequest(`/api/orders/${id}`, {
+      method: "DELETE",
+    });
+  },
 };

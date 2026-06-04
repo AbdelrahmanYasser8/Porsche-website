@@ -1,5 +1,5 @@
 .page {
-  background-color: #efefef;
+  background-color: var(--bg-primary);
   min-height: 100vh;
   min-height: 100dvh;
   width: 100%;
@@ -14,8 +14,8 @@
   width: 100%;
   max-width: 480px;
   border-radius: 18px;
-  background: #ffffff;
-  box-shadow: 0 6px 32px rgba(0, 0, 0, 0.09);
+  background: var(--bg-secondary);
+  box-shadow: var(--shadow-sm);
 }
 
 .cardBody {
@@ -33,7 +33,7 @@
 
 .eyebrow {
   margin: 0;
-  color: #7a7a7a;
+  color: var(--text-muted);
   font-size: 0.72rem;
   font-weight: 700;
   letter-spacing: 0.16em;
@@ -42,7 +42,7 @@
 
 .title {
   margin: 0;
-  color: #111111;
+  color: var(--text-primary);
   font-size: 2rem;
   font-weight: 700;
   line-height: 1.15;
@@ -50,7 +50,7 @@
 
 .subtitle {
   margin: 0;
-  color: #666666;
+  color: var(--text-secondary);
   font-size: 0.95rem;
   line-height: 1.6;
 }
@@ -84,13 +84,13 @@
   height: 1rem;
   margin-top: 0.18rem;
   border-radius: 4px;
-  border-color: #6a6a6a;
+  border-color: #444;
   flex: 0 0 auto;
 }
 
 .checkboxInput:checked {
-  border-color: #111111;
-  background-color: #111111;
+  border-color: var(--text-primary) !important;
+  background-color: var(--text-primary) !important;
 }
 
 .checkboxInput:focus {
@@ -98,7 +98,7 @@
 }
 
 .checkboxLabel {
-  color: #6f6f6f;
+  color: var(--text-muted);
   font-size: 0.88rem;
   line-height: 1.5;
 }
@@ -115,8 +115,8 @@
   min-height: 44px;
   border: 0;
   border-radius: 7px;
-  background-color: #000000;
-  color: #ffffff;
+  background-color: var(--text-primary);
+  color: var(--bg-primary);
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -127,59 +127,59 @@
 }
 
 .submitButton:hover {
-  background-color: #111111;
+  opacity: 0.85;
 }
 
 .submitButton:focus-visible {
-  outline: 2px solid rgba(0, 0, 0, 0.3);
+  outline: 2px solid var(--text-muted);
   outline-offset: 2px;
 }
 
 .footerText {
   margin: 0;
-  color: #8a8a8a;
+  color: var(--text-muted);
   font-size: 0.94rem;
   text-align: center;
 }
 
 .footerLink {
-  color: #111111;
+  color: var(--text-primary);
   font-weight: 600;
   text-decoration: none;
 }
 
 .footerLink:hover {
-  color: #333333;
+  color: var(--text-secondary);
 }
 
 .mutedLink {
-  color: #7b7b7b;
+  color: var(--text-muted);
   font-size: 0.88rem;
   text-decoration: none;
 }
 
 .mutedLink:hover {
-  color: #111111;
+  color: var(--text-primary);
 }
 
 .termsText {
-  color: #111111;
+  color: var(--text-primary);
   font-weight: 600;
 }
 
 .termsText:hover {
-  color: #333333;
+  color: var(--text-secondary);
 }
 
 .policyLink {
-  color: #111111;
+  color: var(--text-primary);
   font-weight: 600;
   text-decoration: underline;
   text-underline-offset: 2px;
 }
 
 .policyLink:hover {
-  color: #333333;
+  color: var(--text-secondary);
 }
 
 @media (max-width: 575.98px) {

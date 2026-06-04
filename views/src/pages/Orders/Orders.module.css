@@ -1,5 +1,5 @@
 .page {
-  background: #f4f4f2;
+  background: var(--bg-primary);
 }
 
 .content {
@@ -24,7 +24,7 @@
 
 .eyebrow {
   margin: 0 0 8px;
-  color: #7a7a7a;
+  color: var(--text-muted);
   font-size: 0.74rem;
   font-weight: 700;
   letter-spacing: 0.16em;
@@ -33,25 +33,17 @@
 
 .pageTitle {
   margin: 0;
-  color: #111111;
+  color: var(--text-primary);
   font-size: clamp(1.8rem, 2.4vw, 2.3rem);
   line-height: 1.1;
 }
 
 .pageSubtitle {
   margin: 10px 0 0;
-  color: #666666;
+  color: var(--text-muted);
   font-size: 0.98rem;
   line-height: 1.7;
   max-width: 64ch;
-}
-
-.panel {
-  padding: 28px;
-  border: 1px solid #e6e6e6;
-  border-radius: 18px;
-  background: #ffffff;
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.05);
 }
 
 @media (max-width: 575.98px) {
@@ -62,11 +54,6 @@
   .container {
     width: min(100% - 32px, 1180px);
     gap: 18px;
-  }
-
-  .panel {
-    padding: 22px;
-    border-radius: 16px;
   }
 
   .pageHeader {

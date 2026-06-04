@@ -3,10 +3,12 @@ import "bootstrap/dist/css/bootstrap.min.css";
 import "bootstrap/dist/js/bootstrap.bundle.min.js";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
+import { useTheme } from "../../context/ThemeContext";
 
 export default function Navbar({ transparent = false }) {
   const navigate = useNavigate();
   const { user, logout } = useAuth();
+  const { toggleTheme, isDark } = useTheme();
 
   const navClass = `${styles.navbarCustom} ${
     transparent ? styles.transparentNavbar : styles.defaultNavbar
@@ -73,6 +75,15 @@ export default function Navbar({ transparent = false }) {
         </div>
 
         <div className={styles.accountArea}>
+          <button
+            className={`${styles.themeToggle} ${transparent ? styles.transparentIcon : styles.defaultIcon}`}
+            onClick={toggleTheme}
+            aria-label={isDark ? "Switch to light mode" : "Switch to dark mode"}
+            title={isDark ? "Light mode" : "Dark mode"}
+          >
+            <i className={`fa-solid ${isDark ? "fa-sun" : "fa-moon"}`}></i>
+          </button>
+
           <div className={`${styles.accountDropdown} dropdown`}>
             <button
               className={`${styles.accountToggle} nav-link`}
@@ -134,6 +145,15 @@ export default function Navbar({ transparent = false }) {
           </div>
 
           <div className={styles.mobileAccountLinks}>
+            <button
+              className={`${linkClass} ${styles.mobileAccountLink}`}
+              onClick={toggleTheme}
+              type="button"
+              style={{ background: "none", border: 0, padding: 0, width: "100%", textAlign: "left", display: "flex", alignItems: "center", gap: "10px" }}
+            >
+              <i className={`fa-solid ${isDark ? "fa-sun" : "fa-moon"}`} style={{ width: 18, textAlign: "center" }}></i>
+              {isDark ? "Light Mode" : "Dark Mode"}
+            </button>
             {user ? (
               <>
                 <Link className={`${linkClass} ${styles.mobileAccountLink}`} to="/profile">
