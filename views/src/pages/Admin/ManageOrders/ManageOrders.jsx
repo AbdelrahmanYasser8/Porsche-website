@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import "bootstrap/dist/css/bootstrap.min.css";
+import Loader from "../../../components/Loader/Loader";
 import { ordersApi } from "../../../api/orders";
 import { useToast } from "../../../components/Toast/ToastProvider";
 import styles from "./ManageOrders.module.css";
@@ -99,9 +100,7 @@ export default function ManageOrders() {
         </header>
 
         {loading ? (
-          <div className="alert alert-secondary mb-4" role="status">
-            Loading orders...
-          </div>
+          <Loader label="Loading orders..." />
         ) : null}
 
         <section className={styles.controls} aria-label="Order filters">

@@ -19,7 +19,6 @@
 }
 
 .container {
-  min-width: 180px;
   padding: 20px;
   display: flex;
   flex-direction: column;
@@ -30,7 +29,37 @@
   text-align: center;
 }
 
+.section {
+  min-height: 160px;
+}
+
+.page {
+  min-height: calc(100vh - 250px);
+  padding: 48px 24px;
+}
+
+.compact {
+  min-width: 0;
+  min-height: 0;
+  padding: 0;
+  flex-direction: row;
+  gap: 8px;
+  color: inherit;
+}
+
+.compact .loader {
+  width: 16px;
+  height: 16px;
+  border-width: 2px;
+  border-color: currentColor;
+  border-bottom-color: transparent;
+}
+
 .label {
   font-size: 0.92rem;
   white-space: nowrap;
+}
+
+.compact .label {
+  font-size: inherit;
 }

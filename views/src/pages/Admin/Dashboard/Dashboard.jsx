@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import "bootstrap/dist/css/bootstrap.min.css";
 import { Link } from "react-router-dom";
 import Footer from "../../../components/Footer/Footer";
+import Loader from "../../../components/Loader/Loader";
 import Navbar from "../../../components/Navbar/Navbar";
 import { useToast } from "../../../components/Toast/ToastProvider";
 import { adminApi } from "../../../api/admin";
@@ -136,9 +137,7 @@ export default function Dashboard() {
           </header>
 
           {loading ? (
-            <div className="alert alert-secondary mb-0" role="status">
-              Loading dashboard...
-            </div>
+            <Loader label="Loading dashboard..." />
           ) : null}
 
           {!loading ? (

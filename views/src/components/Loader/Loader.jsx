@@ -1,13 +1,17 @@
 import { Html } from "@react-three/drei";
 import styles from "./Loader.module.css";
 
-export default function Loader() {
+function LoaderContent({ label, variant }) {
   return (
-    <Html center>
-      <div className={styles.container} role="status" aria-label="Loading 3D model">
-        <span className={styles.loader} aria-hidden="true"></span>
-        <span className={styles.label}>Loading 3D model</span>
-      </div>
-    </Html>
+    <span className={`${styles.container} ${styles[variant] || ""}`} role="status">
+      <span className={styles.loader} aria-hidden="true"></span>
+      {label ? <span className={styles.label}>{label}</span> : null}
+    </span>
   );
+}
+
+export default function Loader({ label = "Loading...", variant = "section", canvas = false }) {
+  const content = <LoaderContent label={label} variant={variant} />;
+
+  return canvas ? <Html center>{content}</Html> : content;
 }

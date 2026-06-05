@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import "bootstrap/dist/css/bootstrap.min.css";
+import Loader from "../../../components/Loader/Loader";
 import { usersApi } from "../../../api/users";
 import { useToast } from "../../../components/Toast/ToastProvider";
 import { useAuth } from "../../../context/AuthContext";
@@ -125,9 +126,7 @@ export default function ManageUsers() {
         </header>
 
         {loading ? (
-          <div className="alert alert-secondary mb-4" role="status">
-            Loading users...
-          </div>
+          <Loader label="Loading users..." />
         ) : null}
 
         <label className={styles.searchBox} htmlFor="admin-user-search">

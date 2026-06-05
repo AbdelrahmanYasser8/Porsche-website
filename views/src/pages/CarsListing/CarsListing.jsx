@@ -4,6 +4,7 @@ import "bootstrap/dist/css/bootstrap.min.css";
 import Navbar from "../../components/Navbar/Navbar";
 import Footer from "../../components/Footer/Footer";
 import CarCard from "../../components/CarCard/CarCard";
+import Loader from "../../components/Loader/Loader";
 import { useToast } from "../../components/Toast/ToastProvider";
 import { carsApi } from "../../api/cars";
 import { getCarFallbackImage } from "../../utils/carAssets";
@@ -176,7 +177,7 @@ export default function CarListing() {
 
           <div className="col-12 col-md-9">
             {loading ? (
-              <div className="text-center py-5 text-secondary">Loading vehicles...</div>
+              <Loader label="Loading vehicles..." />
             ) : (
               <div className="row row-cols-1 row-cols-sm-2 row-cols-lg-3 g-3">
                 {cars.length === 0 ? (

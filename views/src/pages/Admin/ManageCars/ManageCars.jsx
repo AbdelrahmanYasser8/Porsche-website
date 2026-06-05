@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import 'bootstrap/dist/css/bootstrap.min.css';
+import Loader from "../../../components/Loader/Loader";
 import { carsApi } from "../../../api/cars";
 import { useToast } from "../../../components/Toast/ToastProvider";
 import { getCarFallbackImage } from "../../../utils/carAssets";
@@ -470,9 +471,7 @@ export default function ManageCars() {
         </header>
 
         {loading ? (
-          <div className="alert alert-secondary mb-4" role="status">
-            Loading cars...
-          </div>
+          <Loader label="Loading cars..." />
         ) : null}
 
         <section className={styles.controls} aria-label="Car filters">
@@ -834,8 +833,14 @@ export default function ManageCars() {
 
               <div className={styles.dialogActions}>
                 <button className={styles.saveButton} type="submit" disabled={isSaving}>
-                  <i className="fa-regular fa-floppy-disk"></i>
-                  {isSaving ? 'Saving...' : 'Save'}
+                  {isSaving ? (
+                    <Loader label="Saving..." variant="compact" />
+                  ) : (
+                    <>
+                      <i className="fa-regular fa-floppy-disk"></i>
+                      Save
+                    </>
+                  )}
                 </button>
                 <button className={styles.cancelButton} type="button" onClick={closeDialog}>
                   Cancel

@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import Loader from "../Loader/Loader";
 import { ordersApi } from "../../api/orders";
 import { useToast } from "../Toast/ToastProvider";
 import styles from "./OrderHistory.module.css";
@@ -73,7 +74,7 @@ export default function OrderHistory({ showIntro = true }) {
 
       <div className={styles.list}>
         {loading ? (
-          <div className="py-5 text-center text-secondary">Loading orders...</div>
+          <Loader label="Loading orders..." />
         ) : null}
 
         {!loading &&

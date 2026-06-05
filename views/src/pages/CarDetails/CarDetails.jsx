@@ -493,10 +493,8 @@ export default function CarDetails() {
     return (
       <>
         <Navbar />
-        <main className={styles.pageLoading} role="status">
-          <i className="fa-solid fa-circle-notch fa-spin" aria-hidden="true" />
-          <strong>Loading car details</strong>
-          <span>Fetching the latest vehicle configuration.</span>
+        <main>
+          <Loader label="Loading car details..." variant="page" />
         </main>
         <Footer />
       </>
@@ -515,7 +513,7 @@ export default function CarDetails() {
                   className={styles.modelCanvas}
                   camera={{ position: [1.95, 0.51, 4.37], fov: 50 }}
                 >
-                  <Suspense fallback={<Loader />}>
+                  <Suspense fallback={<Loader canvas label="Loading 3D model..." />}>
                     <Environment
                       files="/qwantani_puresky_4k.hdr"
                       background={true}
@@ -578,7 +576,13 @@ export default function CarDetails() {
               onClick={handlePlaceOrder}
               disabled={!car || isOrdering || isOutOfStock}
             >
-              {isOutOfStock ? "Out of Stock" : isOrdering ? "Placing Order..." : "Place Order"}
+              {isOutOfStock ? (
+                "Out of Stock"
+              ) : isOrdering ? (
+                <Loader label="Placing order..." variant="compact" />
+              ) : (
+                "Place Order"
+              )}
             </button>
           </div>
 

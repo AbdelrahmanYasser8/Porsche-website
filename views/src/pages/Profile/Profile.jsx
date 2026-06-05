@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import AuthField from "../../components/Auth/AuthField";
 import Footer from "../../components/Footer/Footer";
+import Loader from "../../components/Loader/Loader";
 import Navbar from "../../components/Navbar/Navbar";
 import { useToast } from "../../components/Toast/ToastProvider";
 import { useAuth } from "../../context/AuthContext";
@@ -309,8 +310,14 @@ export default function Profile() {
 
                     <div className={styles.actionsRow}>
                       <button type="submit" className={styles.primaryButton} disabled={profileSaving}>
-                        <i className="fas fa-floppy-disk"></i>
-                        {profileSaving ? "Saving..." : "Save Changes"}
+                        {profileSaving ? (
+                          <Loader label="Saving..." variant="compact" />
+                        ) : (
+                          <>
+                            <i className="fas fa-floppy-disk"></i>
+                            Save Changes
+                          </>
+                        )}
                       </button>
                     </div>
                   </form>
@@ -377,8 +384,14 @@ export default function Profile() {
 
                     <div className={styles.actionsRow}>
                       <button type="submit" className={styles.primaryButton} disabled={passwordSaving}>
-                        <i className="fas fa-lock"></i>
-                        {passwordSaving ? "Updating..." : "Update Password"}
+                        {passwordSaving ? (
+                          <Loader label="Updating..." variant="compact" />
+                        ) : (
+                          <>
+                            <i className="fas fa-lock"></i>
+                            Update Password
+                          </>
+                        )}
                       </button>
                     </div>
                   </form>
