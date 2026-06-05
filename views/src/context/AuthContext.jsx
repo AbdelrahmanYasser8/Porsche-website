@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components */
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
 import { authApi } from "../api/auth";
 
@@ -22,7 +23,7 @@ export function AuthProvider({ children }) {
         if (active) {
           setUser(response.user || null);
         }
-      } catch (error) {
+      } catch {
         if (active) {
           setUser(null);
         }

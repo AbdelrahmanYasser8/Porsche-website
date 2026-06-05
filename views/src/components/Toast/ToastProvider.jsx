@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components */
 import { createContext, useCallback, useContext, useEffect, useRef, useState } from "react";
 import styles from "./ToastProvider.module.css";
 
@@ -70,9 +71,11 @@ export function ToastProvider({ children }) {
   }, []);
 
   useEffect(() => {
+    const timers = timersRef.current;
+
     return () => {
-      timersRef.current.forEach((timerId) => window.clearTimeout(timerId));
-      timersRef.current.clear();
+      timers.forEach((timerId) => window.clearTimeout(timerId));
+      timers.clear();
     };
   }, []);
 

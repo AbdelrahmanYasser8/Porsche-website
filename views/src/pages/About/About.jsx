@@ -1,4 +1,3 @@
-import React from "react";
 import Navbar from "../../components/Navbar/Navbar";
 import wallpaper from "../../assets/images/wallpaper-porsche.png";
 import Footer from "../../components/Footer/Footer";

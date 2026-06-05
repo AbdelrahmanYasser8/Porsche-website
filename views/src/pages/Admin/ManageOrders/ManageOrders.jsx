@@ -62,18 +62,6 @@ export default function ManageOrders() {
     .filter((order) => order.status !== "Cancelled")
     .reduce((total, order) => total + Number(order.amount || 0), 0);
 
-  const handleDeleteOrder = async (orderId) => {
-    try {
-      await ordersApi.delete(orderId);
-      setReloadToken((current) => current + 1);
-    } catch (error) {
-      showToast({
-        variant: "danger",
-        message: error.message || "Unable to delete order",
-      });
-    }
-  };
-
   const handleStatusChange = async (orderId, status) => {
     try {
       await ordersApi.updateStatus(orderId, { status });
@@ -203,15 +191,6 @@ export default function ManageOrders() {
                                   </option>
                                 ))}
                             </select>
-                            {/* The delete button. If needed.
-                             <button
-                              className={styles.deleteBtn}
-                              onClick={() => handleDeleteOrder(order.dbId)}
-                              aria-label={`Delete ${order.id}`}
-                            >
-                              <i className="fa-regular fa-trash-can"></i>
-                            </button>
-                             */}
                           </div>
                         </td>
                       </tr>

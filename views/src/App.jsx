@@ -1,4 +1,4 @@
-import { Routes, Route } from 'react-router-dom'
+import { Navigate, Route, Routes } from 'react-router-dom'
 import CarListing from "./pages/CarsListing/CarsListing"
 import CarDetails from "./pages/CarDetails/CarDetails"
 import Home from "./pages/Home/Home";
@@ -16,8 +16,6 @@ import ManageOrders from "./pages/Admin/ManageOrders/ManageOrders";
 import CookieConsent from "./components/Cookies/CookieConsent";
 import RequireAuth from "./components/Auth/RequireAuth";
 import { ToastProvider } from "./components/Toast/ToastProvider";
-import { Navigate } from "react-router-dom";
-
 
 function App() {
   return (

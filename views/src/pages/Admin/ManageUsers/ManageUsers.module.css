@@ -178,7 +178,6 @@
   font-weight: 900;
 }
 
-.roleBadge,
 .statusBadge {
   min-height: 26px;
   padding: 0 11px;
@@ -190,12 +189,6 @@
   font-size: 0.76rem;
   font-weight: 800;
   white-space: nowrap;
-}
-
-.roleBadge {
-  background: var(--hover-bg);
-  color: var(--accent-gold);
-  border-color: var(--border-color);
 }
 
 .active {

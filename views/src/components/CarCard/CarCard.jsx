@@ -1,6 +1,5 @@
 import 'bootstrap/dist/css/bootstrap.min.css';
 import styles from './CarCard.module.css';
-import React from "react";
 import { Link } from "react-router-dom";
 
 

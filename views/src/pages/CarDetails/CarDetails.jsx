@@ -2,7 +2,7 @@ import styles from "./CarDetails.module.css";
 import Navbar from "../../components/Navbar/Navbar";
 import Footer from "../../components/Footer/Footer";
 import Loader from "../../components/Loader/Loader";
-import React, { useEffect, useMemo, useRef, Suspense, useState } from "react";
+import { Suspense, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { useGLTF, OrbitControls, Environment } from "@react-three/drei";
@@ -48,22 +48,6 @@ function normalizeNodeKey(value) {
     .replace(/&/g, " and ")
     .replace(/[^a-z0-9]+/g, "_")
     .replace(/^_+|_+$/g, "");
-}
-
-function getColorSwatch(color) {
-  const value = normalizeText(color);
-
-  if (value.includes("black")) return "#111111";
-  if (value.includes("white")) return "#f5f5f2";
-  if (value.includes("red")) return "#a81f2f";
-  if (value.includes("blue")) return "#1f4f9b";
-  if (value.includes("green")) return "#2e7d32";
-  if (value.includes("yellow")) return "#d8b100";
-  if (value.includes("purple")) return "#6a3fa0";
-  if (value.includes("orange")) return "#d06a1b";
-  if (value.includes("cyan") || value.includes("cayan")) return "#2aa8a1";
-
-  return "#8d8d8d";
 }
 
 function getColorNodeCandidates(color) {
@@ -272,40 +256,46 @@ function SceneButtons({ scenes, setCameraTarget }) {
 
 function PorscheModel({ color, wheel, modelUrl }) {
   const gltf = useGLTF(modelUrl);
-  const modelRef = useRef();
   const selectedWheelNode = getWheelNodeName(wheel);
+  const model = useMemo(() => {
+    const clone = gltf.scene.clone(true);
+    const nodes = {};
 
-  useEffect(() => {
-    if (!gltf.nodes) return;
+    clone.traverse((node) => {
+      if (node.name) {
+        nodes[node.name] = node;
+      }
+    });
 
-    const bodyNodes = getAvailableBodyNodeNames(gltf.nodes);
+    const bodyNodes = getAvailableBodyNodeNames(nodes);
 
     bodyNodes.forEach((name) => {
-      gltf.nodes[name].visible = false;
+      nodes[name].visible = false;
     });
 
     const wheels = ["wheel_type1", "wheel_type2", "wheel_type3", "wheel_type4"];
 
     wheels.forEach((name) => {
-      if (gltf.nodes[name]) {
-        gltf.nodes[name].visible = false;
+      if (nodes[name]) {
+        nodes[name].visible = false;
       }
     });
 
-    if (gltf.nodes[selectedWheelNode]) {
-      gltf.nodes[selectedWheelNode].visible = true;
+    if (nodes[selectedWheelNode]) {
+      nodes[selectedWheelNode].visible = true;
     }
 
-    const selectedBody = getColorNodeName(gltf.nodes, color);
-    if (gltf.nodes[selectedBody]) {
-      gltf.nodes[selectedBody].visible = true;
+    const selectedBody = getColorNodeName(nodes, color);
+    if (nodes[selectedBody]) {
+      nodes[selectedBody].visible = true;
     }
-  }, [color, gltf, selectedWheelNode]);
+
+    return clone;
+  }, [color, gltf.scene, selectedWheelNode]);
 
   return (
     <primitive
-      ref={modelRef}
-      object={gltf.scene}
+      object={model}
       scale={0.5}
       position={[0, -1, 0]}
     />

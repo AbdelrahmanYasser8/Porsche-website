@@ -1,5 +1,4 @@
-import { useNavigate } from "react-router-dom";
-import { NavLink } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
 import Footer from "../../components/Footer/Footer";
 import Navbar from "../../components/Navbar/Navbar";
 import OrderHistory from "../../components/Orders/OrderHistory";
@@ -90,5 +89,3 @@ export default function Orders() {
     </div>
   );
 }
-
-export { default as OrdersContent } from "../../components/Orders/OrderHistory";

@@ -36,7 +36,3 @@ export function getCarFallbackImage(car) {
 
   return car.image || fallbackByName[car.name] || fallbackByCategory[car.category] || gt3;
 }
-
-export function getDefaultCarImage(category) {
-  return fallbackByCategory[category] || gt3;
-}

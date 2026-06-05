@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
 import "bootstrap/dist/css/bootstrap.min.css";
 import Navbar from "../../components/Navbar/Navbar";
@@ -12,6 +12,7 @@ import styles from "./CarsListing.module.css";
 
 const CATEGORIES = ["All", "SUV", "Sports", "Electric", "Sedan"];
 const YEARS = ["All", "2024", "2025", "2026"];
+const PRICE_MAX = 1000000;
 
 const getCategoryFromPath = (pathname) => {
   const path = pathname.replace("/", "").toLowerCase();
@@ -38,8 +39,7 @@ export default function CarListing() {
   const [cars, setCars] = useState([]);
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState("All");
-  const [priceRange, setPriceRange] = useState(1000000);
-  const [priceMax, setPriceMax] = useState(1000000);
+  const [priceRange, setPriceRange] = useState(PRICE_MAX);
   const [year, setYear] = useState("All");
   const [loading, setLoading] = useState(true);
 
@@ -88,7 +88,7 @@ export default function CarListing() {
 
   const handleReset = () => {
     setCategory("All");
-    setPriceRange(priceMax);
+    setPriceRange(PRICE_MAX);
     setYear("All");
     setSearch("");
   };
@@ -142,7 +142,7 @@ export default function CarListing() {
                 type="range"
                 className={`form-range ${styles.formRange}`}
                 min={0}
-                max={priceMax}
+                max={PRICE_MAX}
                 step={5000}
                 value={priceRange}
                 onChange={(e) => setPriceRange(Number(e.target.value))}

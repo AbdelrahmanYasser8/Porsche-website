@@ -1,20 +1,17 @@
 import { useEffect, useRef, useState } from "react";
-import { Link } from "react-router-dom"; // Add this import
+import { Link } from "react-router-dom";
 import { AnimatePresence, motion, useInView } from "framer-motion";
 import styles from "./Home.module.css";
 import pv from "../../assets/videos/porsche-911-gt3-rs.mp4";
 import cayenneCoupeImg from "../../assets/images/cayenne-coupe.png";
 import Navbar from "../../components/Navbar/Navbar";
-import Footer from "../../components/Footer/Footer";    
-
+import Footer from "../../components/Footer/Footer";
 import suv from "../../assets/images/suv.avif";
 import sport from "../../assets/images/sport.jpg";
 import electric from "../../assets/images/electric.jpg";
 import sedan from "../../assets/images/sedan.jpeg";
-
 import taycanImg from "../../assets/images/Taycan_TurboS.avif";
 import macanImg from "../../assets/images/Macan_Electric.avif";
-
 import img911Carrera from "../../assets/images/911_Carrera.avif";
 import imgGT3RS from "../../assets/images/GT3_RS.avif";
 import imgCayenneSUV from "../../assets/images/cayenne-side.png";
