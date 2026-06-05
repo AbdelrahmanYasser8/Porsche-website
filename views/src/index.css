@@ -124,6 +124,12 @@ body {
   --bs-alert-border-color: var(--border-color);
 }
 
+[data-theme="dark"] .alert-danger {
+  --bs-alert-bg: #2d0a0a;
+  --bs-alert-color: #f5a3a3;
+  --bs-alert-border-color: #4a1515;
+}
+
 [data-theme="dark"] .btn-outline-secondary {
   --bs-btn-color: var(--text-primary);
   --bs-btn-border-color: var(--border-color);
