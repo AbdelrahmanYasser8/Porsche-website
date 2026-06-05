@@ -3,8 +3,35 @@ const { serializeOrder } = require("../utils/serializers");
 
 const getAll = async (req, res) => {
   try {
+    const { search, status } = req.query;
+    const normalizedSearch = search?.trim().toLowerCase();
     const orders = await Order.find().sort({ createdAt: -1 });
-    res.json(orders.map(serializeOrder));
+    const serializedOrders = orders.map(serializeOrder);
+
+    const filteredOrders = serializedOrders.filter((order) => {
+      const matchesStatus = !status || status === "All" || order.status === status;
+
+      if (!normalizedSearch) {
+        return matchesStatus;
+      }
+
+      const matchesSearch = [
+        order.id,
+        order.customer,
+        order.email,
+        order.product,
+        order.color,
+        order.wheelType,
+        order.status,
+      ]
+        .join(" ")
+        .toLowerCase()
+        .includes(normalizedSearch);
+
+      return matchesStatus && matchesSearch;
+    });
+
+    res.json(filteredOrders);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

@@ -165,6 +165,7 @@ function getVisibleError(submitted, touched, field, error) {
 export default function ManageCars() {
   const [cars, setCars] = useState([]);
   const [search, setSearch] = useState('');
+  const [reloadToken, setReloadToken] = useState(0);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingCarId, setEditingCarId] = useState(null);
   const [formData, setFormData] = useState(emptyCarForm);
@@ -182,7 +183,7 @@ export default function ManageCars() {
       try {
         setLoading(true);
         setPageError('');
-        const response = await carsApi.list();
+        const response = await carsApi.list({ search: search.trim() || undefined });
 
         if (active) {
           setCars(response);
@@ -204,40 +205,13 @@ export default function ManageCars() {
     return () => {
       active = false;
     };
-  }, []);
+  }, [reloadToken, search]);
 
   const totalCars = cars.length;
   const inStock = useMemo(
     () => cars.filter((car) => car.status === 'In Stock').length,
     [cars],
   );
-  const filteredCars = useMemo(() => {
-    const normalizedSearch = search.trim().toLowerCase();
-
-    if (!normalizedSearch) {
-      return cars;
-    }
-
-    return cars.filter((car) => {
-      const carYear = String(car.year || car.manufactureYear || '');
-      const searchableValues = [
-        car.name,
-        car.make,
-        car.category,
-        carYear,
-        String(car.price),
-        car.description,
-        car.colors,
-        car.fuelType,
-        car.status,
-      ]
-        .join(' ')
-        .toLowerCase();
-
-      return searchableValues.includes(normalizedSearch);
-    });
-  }, [cars, search]);
-
   const dialogTitle = editingCarId ? 'Edit Car' : 'Add New Car';
 
   const openAddDialog = () => {
@@ -443,15 +417,12 @@ export default function ManageCars() {
       }
 
       if (editingCarId) {
-        const updatedCar = await carsApi.update(editingCarId, normalizedCar);
-        setCars((currentCars) =>
-          currentCars.map((car) => (car.id === editingCarId ? updatedCar : car)),
-        );
+        await carsApi.update(editingCarId, normalizedCar);
       } else {
-        const createdCar = await carsApi.create(normalizedCar);
-        setCars((currentCars) => [createdCar, ...currentCars]);
+        await carsApi.create(normalizedCar);
       }
 
+      setReloadToken((current) => current + 1);
       closeDialog();
     } catch (error) {
       setPageError(error.message || 'Unable to save car');
@@ -464,7 +435,7 @@ export default function ManageCars() {
     try {
       setPageError('');
       await carsApi.remove(carId);
-      setCars((currentCars) => currentCars.filter((car) => car.id !== carId));
+      setReloadToken((current) => current + 1);
     } catch (error) {
       setPageError(error.message || 'Unable to delete car');
     }
@@ -513,89 +484,93 @@ export default function ManageCars() {
           </label>
         </section>
 
-        <section className={styles.summaryGrid} aria-label="Inventory summary">
-          <article className={styles.summaryCard}>
-            <span>Total Cars</span>
-            <strong>{totalCars}</strong>
-          </article>
-          <article className={styles.summaryCard}>
-            <span>In Stock</span>
-            <strong>{inStock}</strong>
-          </article>
-          <article className={styles.summaryCard}>
-            <span>Out of Stock</span>
-            <strong>{totalCars - inStock}</strong>
-          </article>
-        </section>
+        {!loading ? (
+          <>
+            <section className={styles.summaryGrid} aria-label="Inventory summary">
+              <article className={styles.summaryCard}>
+                <span>Total Cars</span>
+                <strong>{totalCars}</strong>
+              </article>
+              <article className={styles.summaryCard}>
+                <span>In Stock</span>
+                <strong>{inStock}</strong>
+              </article>
+              <article className={styles.summaryCard}>
+                <span>Out of Stock</span>
+                <strong>{totalCars - inStock}</strong>
+              </article>
+            </section>
 
-        <section className={styles.tablePanel}>
-          <div className={styles.tableWrap}>
-            <table className={styles.dataTable}>
-              <thead>
-                <tr>
-                  <th>Image</th>
-                  <th>Name</th>
-                  <th>Category</th>
-                  <th>Year</th>
-                  <th>Price</th>
-                  <th>Status</th>
-                  <th>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredCars.map((car) => (
-                  <tr key={car.id}>
-                    <td>
-                      <img className={styles.carImage} src={getCarFallbackImage(car)} alt={car.name} />
-                    </td>
-                    <td>
-                      <div className={styles.primaryText}>{car.name}</div>
-                      <div className={styles.secondaryText}>{car.make}</div>
-                    </td>
-                    <td>{car.category}</td>
-                    <td>{car.year ?? car.manufactureYear}</td>
-                    <td>{formatCurrency(car.price)}</td>
-                    <td>
-                      <span
-                        className={`${styles.statusBadge} ${
-                          car.status === 'In Stock' ? styles.inStock : styles.outStock
-                        }`}
-                      >
-                        {car.status}
-                      </span>
-                    </td>
-                    <td>
-                      <div className={styles.actions}>
-                        <button
-                          className={styles.iconButton}
-                          type="button"
-                          onClick={() => openEditDialog(car)}
-                          aria-label={`Edit ${car.name}`}
-                          title="Edit car"
-                        >
-                          <i className="fa-regular fa-pen-to-square"></i>
-                        </button>
-                        <button
-                          className={`${styles.iconButton} ${styles.dangerButton}`}
-                          type="button"
-                          onClick={() => handleDeleteCar(car.id)}
-                          aria-label={`Delete ${car.name}`}
-                          title="Delete car"
-                        >
-                          <i className="fa-regular fa-trash-can"></i>
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+            <section className={styles.tablePanel}>
+              <div className={styles.tableWrap}>
+                <table className={styles.dataTable}>
+                  <thead>
+                    <tr>
+                      <th>Image</th>
+                      <th>Name</th>
+                      <th>Category</th>
+                      <th>Year</th>
+                      <th>Price</th>
+                      <th>Status</th>
+                      <th>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {cars.map((car) => (
+                      <tr key={car.id}>
+                        <td>
+                          <img className={styles.carImage} src={getCarFallbackImage(car)} alt={car.name} />
+                        </td>
+                        <td>
+                          <div className={styles.primaryText}>{car.name}</div>
+                          <div className={styles.secondaryText}>{car.make}</div>
+                        </td>
+                        <td>{car.category}</td>
+                        <td>{car.year ?? car.manufactureYear}</td>
+                        <td>{formatCurrency(car.price)}</td>
+                        <td>
+                          <span
+                            className={`${styles.statusBadge} ${
+                              car.status === 'In Stock' ? styles.inStock : styles.outStock
+                            }`}
+                          >
+                            {car.status}
+                          </span>
+                        </td>
+                        <td>
+                          <div className={styles.actions}>
+                            <button
+                              className={styles.iconButton}
+                              type="button"
+                              onClick={() => openEditDialog(car)}
+                              aria-label={`Edit ${car.name}`}
+                              title="Edit car"
+                            >
+                              <i className="fa-regular fa-pen-to-square"></i>
+                            </button>
+                            <button
+                              className={`${styles.iconButton} ${styles.dangerButton}`}
+                              type="button"
+                              onClick={() => handleDeleteCar(car.id)}
+                              aria-label={`Delete ${car.name}`}
+                              title="Delete car"
+                            >
+                              <i className="fa-regular fa-trash-can"></i>
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
 
-          {!loading && filteredCars.length === 0 ? (
-            <div className={styles.emptyState}>No cars match your search.</div>
-          ) : null}
-        </section>
+              {cars.length === 0 ? (
+                <div className={styles.emptyState}>No cars match your search.</div>
+              ) : null}
+            </section>
+          </>
+        ) : null}
       </div>
 
       {isDialogOpen ? (

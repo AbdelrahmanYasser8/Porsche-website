@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
 import "bootstrap/dist/css/bootstrap.min.css";
 import Navbar from "../../components/Navbar/Navbar";
@@ -10,8 +10,6 @@ import styles from "./CarsListing.module.css";
 
 const CATEGORIES = ["All", "SUV", "Sports", "Electric", "Sedan"];
 const YEARS = ["All", "2024", "2025", "2026"];
-
-const normalizeText = (value) => String(value || "").trim().toLowerCase();
 
 const getCategoryFromPath = (pathname) => {
   const path = pathname.replace("/", "").toLowerCase();
@@ -50,21 +48,20 @@ export default function CarListing() {
 
   useEffect(() => {
     let active = true;
-    const categoryQuery = categoryFromUrl => categoryFromUrl && categoryFromUrl !== "All" ? { category: categoryFromUrl } : {};
 
     const loadCars = async () => {
       try {
         setLoading(true);
         setError("");
-        const response = await carsApi.list(categoryQuery(getCategoryFromPath(location.pathname)));
+        const query = {
+          search: search.trim() || undefined,
+          category: category !== "All" ? category : undefined,
+          year: year !== "All" ? year : undefined,
+          maxPrice: priceRange,
+        };
+        const response = await carsApi.list(query);
         if (active) {
           setCars(response);
-          const nextPriceMax = Math.max(
-            ...response.map((car) => Number(car.price) || 0),
-            1000000,
-          );
-          setPriceMax(nextPriceMax);
-          setPriceRange(nextPriceMax);
         }
       } catch (fetchError) {
         if (active) {
@@ -83,27 +80,7 @@ export default function CarListing() {
     return () => {
       active = false;
     };
-  }, [location.pathname]);
-
-  const filtered = useMemo(() => {
-    const normalizedSearch = search.trim().toLowerCase();
-
-    return cars.filter((car) => {
-      const carYear = String(car.year ?? car.manufactureYear ?? "");
-      const matchesSearch =
-        !normalizedSearch ||
-        [car.name, car.make, car.category, carYear, String(car.price), car.status]
-          .join(" ")
-          .toLowerCase()
-          .includes(normalizedSearch);
-      const matchesCategory =
-        category === "All" || normalizeText(car.category) === normalizeText(category);
-      const matchesPrice = Number(car.price) <= priceRange;
-      const matchesYear = year === "All" || carYear === year;
-
-      return matchesSearch && matchesCategory && matchesPrice && matchesYear;
-    });
-  }, [cars, category, priceRange, search, year]);
+  }, [category, priceRange, search, year]);
 
   const handleReset = () => {
     setCategory("All");
@@ -201,31 +178,31 @@ export default function CarListing() {
           </div>
 
           <div className="col-12 col-md-9">
-            <div className="row row-cols-1 row-cols-sm-2 row-cols-lg-3 g-3">
-              {loading && (
-                <div className="col-12 text-center py-5 text-secondary">
-                  Loading vehicles...
-                </div>
-              )}
-              {!loading && filtered.length === 0 && (
-                <div className="col-12 text-center py-5 text-secondary">
-                  No vehicles match your filters.
-                </div>
-              )}
-              {filtered.map((car) => (
-                <CarCard
-                  key={car.id}
-                  id={car.id}
-                  name={car.name}
-                  year={car.year ?? car.manufactureYear}
-                  fuel={car.fuelType}
-                  seats={car.seating}
-                  price={car.price}
-                  image={getCarFallbackImage(car)}
-                  status={car.status}
-                />
-              ))}
-            </div>
+            {loading ? (
+              <div className="text-center py-5 text-secondary">Loading vehicles...</div>
+            ) : (
+              <div className="row row-cols-1 row-cols-sm-2 row-cols-lg-3 g-3">
+                {cars.length === 0 ? (
+                  <div className="col-12 text-center py-5 text-secondary">
+                    No vehicles match your filters.
+                  </div>
+                ) : (
+                  cars.map((car) => (
+                    <CarCard
+                      key={car.id}
+                      id={car.id}
+                      name={car.name}
+                      year={car.year ?? car.manufactureYear}
+                      fuel={car.fuelType}
+                      seats={car.seating}
+                      price={car.price}
+                      image={getCarFallbackImage(car)}
+                      status={car.status}
+                    />
+                  ))
+                )}
+              </div>
+            )}
           </div>
         </div>
       </div>

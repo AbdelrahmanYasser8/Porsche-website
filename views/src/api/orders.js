@@ -1,8 +1,17 @@
 import { apiRequest } from "./client";
 
 export const ordersApi = {
-  listAll() {
-    return apiRequest("/api/orders");
+  listAll(query = {}) {
+    const searchParams = new URLSearchParams();
+
+    Object.entries(query).forEach(([key, value]) => {
+      if (value !== undefined && value !== null && value !== "" && value !== "All") {
+        searchParams.set(key, value);
+      }
+    });
+
+    const queryString = searchParams.toString();
+    return apiRequest(`/api/orders${queryString ? `?${queryString}` : ""}`);
   },
   listMine() {
     return apiRequest("/api/orders/mine");

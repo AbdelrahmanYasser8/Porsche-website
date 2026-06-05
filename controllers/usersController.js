@@ -34,6 +34,7 @@ async function listUsers(req, res) {
   try {
     const { search, status, role } = req.query;
     const filter = {};
+    const normalizedSearch = search?.trim();
 
     if (status && status !== "All") {
       filter.status = status;
@@ -43,10 +44,10 @@ async function listUsers(req, res) {
       filter.role = role;
     }
 
-    if (search) {
+    if (normalizedSearch) {
       filter.$or = [
-        { name: { $regex: search, $options: "i" } },
-        { email: { $regex: search, $options: "i" } },
+        { name: { $regex: normalizedSearch, $options: "i" } },
+        { email: { $regex: normalizedSearch, $options: "i" } },
       ];
     }
 
