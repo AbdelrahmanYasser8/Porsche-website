@@ -88,7 +88,7 @@ function serializeCar(car) {
   const modelMimeType = doc.modelMimeType || "";
   const modelUrl = doc.modelFileId
     ? `/api/cars/${doc._id.toString()}/model`
-    : doc.modelDataUrl || (doc.modelFileName ? `/${encodeURIComponent(doc.modelFileName)}` : "");
+    : doc.modelDataUrl || "";
 
   return {
     id: doc._id.toString(),

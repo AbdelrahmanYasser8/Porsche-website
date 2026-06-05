@@ -271,8 +271,7 @@ function SceneButtons({ scenes, setCameraTarget }) {
 }
 
 function PorscheModel({ color, wheel, modelUrl }) {
-  const resolvedModelUrl = modelUrl || "/porsche%20model.glb";
-  const gltf = useGLTF(resolvedModelUrl);
+  const gltf = useGLTF(modelUrl);
   const modelRef = useRef();
   const selectedWheelNode = getWheelNodeName(wheel);
 
@@ -496,35 +495,51 @@ export default function CarDetails() {
         <section className={styles.previewPanel}>
           <div className={styles.previewSticky}>
             <div className={styles.modelContainer}>
-              <Canvas
-                className={styles.modelCanvas}
-                camera={{ position: [1.95, 0.51, 4.37], fov: 50 }}
-              >
-                <Suspense fallback={<Loader />}>
-                  <Environment
-                    files="/qwantani_puresky_4k.hdr"
-                    background={true}
-                    environmentRotation={[7, 8, 0]}
+              {loading ? (
+                <div className={styles.modelUnavailable} role="status">
+                  <i className="fa-solid fa-circle-notch fa-spin" aria-hidden="true" />
+                  <strong>Loading 3D model</strong>
+                  <span>Fetching the latest vehicle configuration.</span>
+                </div>
+              ) : car?.modelUrl ? (
+                <Canvas
+                  className={styles.modelCanvas}
+                  camera={{ position: [1.95, 0.51, 4.37], fov: 50 }}
+                >
+                  <Suspense fallback={<Loader />}>
+                    <Environment
+                      files="/qwantani_puresky_4k.hdr"
+                      background={true}
+                      environmentRotation={[7, 8, 0]}
+                    />
+                    <PorscheModel color={selectedColor} wheel={selectedWheel} modelUrl={car.modelUrl} />
+                  </Suspense>
+                  <CameraAnimator
+                    targetPosition={cameraTarget.position}
+                    targetLookAt={cameraTarget.lookAt}
+                    orbitRef={orbitRef}
                   />
-                  <PorscheModel color={selectedColor} wheel={selectedWheel} modelUrl={car?.modelUrl} />
-                </Suspense>
-                <CameraAnimator
-                  targetPosition={cameraTarget.position}
-                  targetLookAt={cameraTarget.lookAt}
-                  orbitRef={orbitRef}
-                />
-                <OrbitControls
-                  ref={orbitRef}
-                  minPolarAngle={Math.PI / 6}
-                  maxPolarAngle={Math.PI / 2}
-                  minDistance={0}
-                  maxDistance={5}
-                />
-              </Canvas>
+                  <OrbitControls
+                    ref={orbitRef}
+                    minPolarAngle={Math.PI / 6}
+                    maxPolarAngle={Math.PI / 2}
+                    minDistance={0}
+                    maxDistance={5}
+                  />
+                </Canvas>
+              ) : (
+                <div className={styles.modelUnavailable} role="status">
+                  <i className="fa-solid fa-cube" aria-hidden="true" />
+                  <strong>3D model unavailable</strong>
+                  <span>This vehicle does not have a model uploaded yet.</span>
+                </div>
+              )}
             </div>
           </div>
 
-          <SceneButtons scenes={scenes} setCameraTarget={setCameraTarget} />
+          {!loading && car?.modelUrl ? (
+            <SceneButtons scenes={scenes} setCameraTarget={setCameraTarget} />
+          ) : null}
         </section>
 
         <section className={styles.detailsColumn}>
