@@ -15,11 +15,8 @@ function StatusBadge({ status }) {
 
 export default function OrderHistory({ showIntro = true }) {
   const [orders, setOrders] = useState([]);
-  const [currentPage, setCurrentPage] = useState(1);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-
-  const ORDERS_PER_PAGE = 3;
 
   useEffect(() => {
     let active = true;
@@ -32,7 +29,6 @@ export default function OrderHistory({ showIntro = true }) {
 
         if (active) {
           setOrders(response);
-          setCurrentPage(1);
         }
       } catch (fetchError) {
         if (active) {
@@ -52,15 +48,6 @@ export default function OrderHistory({ showIntro = true }) {
       active = false;
     };
   }, []);
-
-  const TOTAL_PAGES = Math.max(1, Math.ceil(orders.length / ORDERS_PER_PAGE));
-  const safePage = Math.min(currentPage, TOTAL_PAGES);
-  const start = (safePage - 1) * ORDERS_PER_PAGE;
-  const paginatedOrders = orders.slice(start, start + ORDERS_PER_PAGE);
-
-  useEffect(() => {
-    setCurrentPage((page) => Math.min(page, TOTAL_PAGES));
-  }, [TOTAL_PAGES]);
 
   return (
     <section className={styles.history}>
@@ -93,7 +80,7 @@ export default function OrderHistory({ showIntro = true }) {
         ) : null}
 
         {!loading &&
-          paginatedOrders.map((order) => {
+          orders.map((order) => {
             const firstItem = order.items?.[0] || {};
 
             return (
@@ -132,43 +119,9 @@ export default function OrderHistory({ showIntro = true }) {
           })}
       </div>
 
-      {!loading && paginatedOrders.length === 0 && !error ? (
+      {!loading && orders.length === 0 && !error ? (
         <div className="py-5 text-center text-secondary">No orders found.</div>
       ) : null}
-
-      <div className={styles.pagination} aria-label="Order history pagination">
-        <button
-          type="button"
-          className={styles.paginationArrow}
-          onClick={() => setCurrentPage((page) => Math.max(1, page - 1))}
-          disabled={safePage === 1}
-          aria-label="Previous page"
-        >
-          <i className={`fa-solid fa-angle-left ${styles.arrowIcon}`}></i>
-        </button>
-
-        {Array.from({ length: TOTAL_PAGES }, (_, index) => index + 1).map((page) => (
-          <button
-            key={page}
-            type="button"
-            onClick={() => setCurrentPage(page)}
-            className={`${styles.paginationButton} ${safePage === page ? styles.paginationButtonActive : ""}`}
-            aria-current={safePage === page ? "page" : undefined}
-          >
-            {page}
-          </button>
-        ))}
-
-        <button
-          type="button"
-          className={styles.paginationArrow}
-          onClick={() => setCurrentPage((page) => Math.min(TOTAL_PAGES, page + 1))}
-          disabled={safePage === TOTAL_PAGES}
-          aria-label="Next page"
-        >
-          <i className={`fa-solid fa-angle-right ${styles.arrowIcon}`}></i>
-        </button>
-      </div>
     </section>
   );
 }

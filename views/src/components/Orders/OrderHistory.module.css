@@ -196,53 +196,6 @@
   line-height: 1.4;
 }
 
-.pagination {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-  flex-wrap: wrap;
-  padding-top: 6px;
-}
-
-.paginationButton,
-.paginationArrow {
-  width: 40px;
-  height: 40px;
-  border: 1px solid var(--border-color);
-  border-radius: 10px;
-  background: var(--bg-card);
-  color: var(--text-primary);
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 0.92rem;
-  font-weight: 600;
-  transition: background-color 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
-}
-
-.paginationButton:hover,
-.paginationArrow:hover:not(:disabled) {
-  background: var(--hover-bg);
-  border-color: var(--text-muted);
-  transform: translateY(-1px);
-}
-
-.paginationButtonActive {
-  background: var(--text-primary);
-  color: var(--bg-primary);
-  border-color: var(--text-primary);
-}
-
-.paginationArrow:disabled {
-  opacity: 0.45;
-  cursor: not-allowed;
-}
-
-.arrowIcon {
-  font-size: 0.92rem;
-}
-
 @media (max-width: 767.98px) {
   .orderMetaGrid {
     grid-template-columns: 1fr;
