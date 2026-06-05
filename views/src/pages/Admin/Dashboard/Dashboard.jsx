@@ -135,6 +135,12 @@ export default function Dashboard() {
             </div>
           </header>
 
+          {loading ? (
+            <div className="alert alert-secondary mb-0" role="status">
+              Loading dashboard...
+            </div>
+          ) : null}
+
           {!loading ? (
             <section className={styles.statsGrid} aria-label="Dashboard summary">
               {stats.map((stat) => (

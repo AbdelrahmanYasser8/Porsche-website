@@ -1,11 +1,12 @@
-import { Html, useProgress } from "@react-three/drei";
+import { Html } from "@react-three/drei";
 import styles from "./Loader.module.css";
 
 export default function Loader() {
   return (
     <Html center>
-      <div className="bg-secondary vw-100 vh-100 d-flex flex-column justify-content-center align-items-center">
-        <span className={styles.loader}></span>
+      <div className={styles.container} role="status" aria-label="Loading 3D model">
+        <span className={styles.loader} aria-hidden="true"></span>
+        <span className={styles.label}>Loading 3D model</span>
       </div>
     </Html>
   );

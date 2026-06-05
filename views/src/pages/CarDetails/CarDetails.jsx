@@ -489,6 +489,20 @@ export default function CarDetails() {
     }
   };
 
+  if (loading) {
+    return (
+      <>
+        <Navbar />
+        <main className={styles.pageLoading} role="status">
+          <i className="fa-solid fa-circle-notch fa-spin" aria-hidden="true" />
+          <strong>Loading car details</strong>
+          <span>Fetching the latest vehicle configuration.</span>
+        </main>
+        <Footer />
+      </>
+    );
+  }
+
   return (
     <>
       <Navbar />
@@ -496,13 +510,7 @@ export default function CarDetails() {
         <section className={styles.previewPanel}>
           <div className={styles.previewSticky}>
             <div className={styles.modelContainer}>
-              {loading ? (
-                <div className={styles.modelUnavailable} role="status">
-                  <i className="fa-solid fa-circle-notch fa-spin" aria-hidden="true" />
-                  <strong>Loading 3D model</strong>
-                  <span>Fetching the latest vehicle configuration.</span>
-                </div>
-              ) : car?.modelUrl ? (
+              {car?.modelUrl ? (
                 <Canvas
                   className={styles.modelCanvas}
                   camera={{ position: [1.95, 0.51, 4.37], fov: 50 }}
@@ -538,7 +546,7 @@ export default function CarDetails() {
             </div>
           </div>
 
-          {!loading && car?.modelUrl ? (
+          {car?.modelUrl ? (
             <SceneButtons scenes={scenes} setCameraTarget={setCameraTarget} />
           ) : null}
         </section>
@@ -552,8 +560,8 @@ export default function CarDetails() {
               </>
             ) : (
               <>
-                <h1>Loading car details</h1>
-                <p className="text-secondary">Fetching the latest vehicle data from the backend...</p>
+                <h1>Car unavailable</h1>
+                <p className="text-secondary">Vehicle details could not be loaded.</p>
               </>
             )}
             <h5>Price</h5>
@@ -568,7 +576,7 @@ export default function CarDetails() {
             <button
               className={`w-100 fs-5 rounded-3 mt-4 ${styles["place-order"] || ""}`}
               onClick={handlePlaceOrder}
-              disabled={loading || isOrdering || isOutOfStock}
+              disabled={!car || isOrdering || isOutOfStock}
             >
               {isOutOfStock ? "Out of Stock" : isOrdering ? "Placing Order..." : "Place Order"}
             </button>

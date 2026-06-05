@@ -7,6 +7,33 @@
     align-items: start;
 }
 
+.pageLoading {
+    min-height: calc(100vh - 250px);
+    padding: 48px 24px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    color: var(--text-secondary);
+    text-align: center;
+}
+
+.pageLoading i {
+    margin-bottom: 6px;
+    color: var(--accent-gold);
+    font-size: 2.4rem;
+}
+
+.pageLoading strong {
+    color: var(--text-primary);
+    font-size: 1.1rem;
+}
+
+.pageLoading span {
+    font-size: 0.92rem;
+}
+
 .previewPanel,
 .sceneCarousel,
 .detailsColumn {
