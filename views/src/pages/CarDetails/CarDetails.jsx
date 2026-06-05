@@ -387,6 +387,7 @@ export default function CarDetails() {
   const [isOrdering, setIsOrdering] = useState(false);
   const colorOptions = useMemo(() => parseOptionList(car?.colorOptions || car?.colors), [car]);
   const wheelOptions = useMemo(() => parseOptionList(car?.wheelOptions || car?.wheels), [car]);
+  const isOutOfStock = car?.status === "Out of Stock";
 
   useEffect(() => {
     if (!colorOptions.length) {
@@ -445,6 +446,14 @@ export default function CarDetails() {
   }, [id]);
 
   const handlePlaceOrder = async () => {
+    if (isOutOfStock) {
+      showToast({
+        variant: "warning",
+        message: "This car is out of stock.",
+      });
+      return;
+    }
+
     if (!user) {
       navigate("/login", { state: { from: { pathname: id ? `/CarDetails/${id}` : "/CarDetails" } } });
       return;
@@ -549,9 +558,9 @@ export default function CarDetails() {
             <button
               className={`w-100 fs-5 rounded-3 mt-4 ${styles["place-order"] || ""}`}
               onClick={handlePlaceOrder}
-              disabled={loading || isOrdering}
+              disabled={loading || isOrdering || isOutOfStock}
             >
-              {isOrdering ? "Placing Order..." : "Place Order"}
+              {isOutOfStock ? "Out of Stock" : isOrdering ? "Placing Order..." : "Place Order"}
             </button>
           </div>
 

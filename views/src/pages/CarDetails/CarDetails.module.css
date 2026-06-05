@@ -141,8 +141,14 @@
     height: 55px;
 }
 
-.place-order:hover {
+.place-order:hover:not(:disabled) {
     opacity: 0.8;
+}
+
+.place-order:disabled {
+    cursor: not-allowed;
+    opacity: 1;
+    box-shadow: none;
 }
 
 @media (min-width: 992px) {
