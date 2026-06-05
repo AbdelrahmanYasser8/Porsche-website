@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { ordersApi } from "../../api/orders";
+import { useToast } from "../Toast/ToastProvider";
 import styles from "./OrderHistory.module.css";
 
 function StatusBadge({ status }) {
@@ -14,9 +15,9 @@ function StatusBadge({ status }) {
 }
 
 export default function OrderHistory({ showIntro = true }) {
+  const { showToast } = useToast();
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
 
   useEffect(() => {
     let active = true;
@@ -24,7 +25,6 @@ export default function OrderHistory({ showIntro = true }) {
     const loadOrders = async () => {
       try {
         setLoading(true);
-        setError("");
         const response = await ordersApi.listMine();
 
         if (active) {
@@ -32,7 +32,10 @@ export default function OrderHistory({ showIntro = true }) {
         }
       } catch (fetchError) {
         if (active) {
-          setError(fetchError.message || "Failed to load orders");
+          showToast({
+            variant: "danger",
+            message: fetchError.message || "Failed to load orders",
+          });
           setOrders([]);
         }
       } finally {
@@ -47,7 +50,7 @@ export default function OrderHistory({ showIntro = true }) {
     return () => {
       active = false;
     };
-  }, []);
+  }, [showToast]);
 
   return (
     <section className={styles.history}>
@@ -65,12 +68,6 @@ export default function OrderHistory({ showIntro = true }) {
             <span className={styles.summaryLabel}>Total orders</span>
             <strong className={styles.summaryValue}>{orders.length}</strong>
           </div>
-        </div>
-      ) : null}
-
-      {error ? (
-        <div className="alert alert-danger mb-4" role="alert">
-          {error}
         </div>
       ) : null}
 
@@ -119,7 +116,7 @@ export default function OrderHistory({ showIntro = true }) {
           })}
       </div>
 
-      {!loading && orders.length === 0 && !error ? (
+      {!loading && orders.length === 0 ? (
         <div className="py-5 text-center text-secondary">No orders found.</div>
       ) : null}
     </section>

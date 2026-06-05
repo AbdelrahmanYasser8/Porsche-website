@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import { carsApi } from "../../../api/cars";
+import { useToast } from "../../../components/Toast/ToastProvider";
 import { getCarFallbackImage } from "../../../utils/carAssets";
 import styles from './ManageCars.module.css';
 
@@ -163,6 +164,7 @@ function getVisibleError(submitted, touched, field, error) {
 }
 
 export default function ManageCars() {
+  const { showToast } = useToast();
   const [cars, setCars] = useState([]);
   const [search, setSearch] = useState('');
   const [reloadToken, setReloadToken] = useState(0);
@@ -173,7 +175,6 @@ export default function ManageCars() {
   const [formTouched, setFormTouched] = useState(initialFormTouched);
   const [formSubmitted, setFormSubmitted] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [pageError, setPageError] = useState('');
   const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
@@ -182,7 +183,6 @@ export default function ManageCars() {
     const loadCars = async () => {
       try {
         setLoading(true);
-        setPageError('');
         const response = await carsApi.list({ search: search.trim() || undefined });
 
         if (active) {
@@ -190,7 +190,10 @@ export default function ManageCars() {
         }
       } catch (error) {
         if (active) {
-          setPageError(error.message || 'Failed to load cars');
+          showToast({
+            variant: 'danger',
+            message: error.message || 'Failed to load cars',
+          });
           setCars([]);
         }
       } finally {
@@ -205,7 +208,7 @@ export default function ManageCars() {
     return () => {
       active = false;
     };
-  }, [reloadToken, search]);
+  }, [reloadToken, search, showToast]);
 
   const totalCars = cars.length;
   const inStock = useMemo(
@@ -286,7 +289,10 @@ export default function ManageCars() {
         setFormTouched((current) => ({ ...current, modelFileName: true }));
         setFormErrors(validateCarForm(nextFormData));
       } catch (error) {
-        setPageError(error.message || 'Unable to read selected file');
+        showToast({
+          variant: 'danger',
+          message: error.message || 'Unable to read selected file',
+        });
       }
 
       return;
@@ -408,7 +414,6 @@ export default function ManageCars() {
 
     try {
       setIsSaving(true);
-      setPageError('');
 
       if (formData.modelFile) {
         const uploadedModel = await carsApi.uploadModel(formData.modelFile);
@@ -425,7 +430,10 @@ export default function ManageCars() {
       setReloadToken((current) => current + 1);
       closeDialog();
     } catch (error) {
-      setPageError(error.message || 'Unable to save car');
+      showToast({
+        variant: 'danger',
+        message: error.message || 'Unable to save car',
+      });
     } finally {
       setIsSaving(false);
     }
@@ -433,11 +441,13 @@ export default function ManageCars() {
 
   const handleDeleteCar = async (carId) => {
     try {
-      setPageError('');
       await carsApi.remove(carId);
       setReloadToken((current) => current + 1);
     } catch (error) {
-      setPageError(error.message || 'Unable to delete car');
+      showToast({
+        variant: 'danger',
+        message: error.message || 'Unable to delete car',
+      });
     }
   };
 
@@ -458,12 +468,6 @@ export default function ManageCars() {
             Add New Car
           </button>
         </header>
-
-        {pageError ? (
-          <div className="alert alert-danger mb-4" role="alert">
-            {pageError}
-          </div>
-        ) : null}
 
         {loading ? (
           <div className="alert alert-secondary mb-4" role="status">

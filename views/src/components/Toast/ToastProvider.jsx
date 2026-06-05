@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useRef, useState } from "react";
+import { createContext, useCallback, useContext, useEffect, useRef, useState } from "react";
 import styles from "./ToastProvider.module.css";
 
 const ToastContext = createContext(null);
@@ -35,7 +35,7 @@ export function ToastProvider({ children }) {
   const [toasts, setToasts] = useState([]);
   const timersRef = useRef(new Map());
 
-  const dismissToast = (id) => {
+  const dismissToast = useCallback((id) => {
     const timerId = timersRef.current.get(id);
     if (timerId) {
       window.clearTimeout(timerId);
@@ -43,9 +43,9 @@ export function ToastProvider({ children }) {
     }
 
     setToasts((currentToasts) => currentToasts.filter((toast) => toast.id !== id));
-  };
+  }, []);
 
-  const showToast = ({ message, title, variant = "success", duration }) => {
+  const showToast = useCallback(({ message, title, variant = "success", duration }) => {
     const id = `toast-${Date.now()}-${toastCounter += 1}`;
     const nextToast = {
       id,
@@ -67,7 +67,7 @@ export function ToastProvider({ children }) {
     }
 
     return id;
-  };
+  }, []);
 
   useEffect(() => {
     return () => {

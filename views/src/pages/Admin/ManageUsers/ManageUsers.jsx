@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import "bootstrap/dist/css/bootstrap.min.css";
 import { usersApi } from "../../../api/users";
+import { useToast } from "../../../components/Toast/ToastProvider";
 import { useAuth } from "../../../context/AuthContext";
 import styles from "./ManageUsers.module.css";
 
@@ -18,11 +19,11 @@ function getInitials(name) {
 
 export default function ManageUsers() {
   const { user: currentUser } = useAuth();
+  const { showToast } = useToast();
   const [users, setUsers] = useState([]);
   const [search, setSearch] = useState("");
   const [reloadToken, setReloadToken] = useState(0);
   const [loading, setLoading] = useState(true);
-  const [pageError, setPageError] = useState("");
 
   useEffect(() => {
     let active = true;
@@ -30,7 +31,6 @@ export default function ManageUsers() {
     const loadUsers = async () => {
       try {
         setLoading(true);
-        setPageError("");
         const response = await usersApi.list({ search: search.trim() || undefined });
 
         if (active) {
@@ -38,7 +38,10 @@ export default function ManageUsers() {
         }
       } catch (error) {
         if (active) {
-          setPageError(error.message || "Failed to load users");
+          showToast({
+            variant: "danger",
+            message: error.message || "Failed to load users",
+          });
           setUsers([]);
         }
       } finally {
@@ -53,7 +56,7 @@ export default function ManageUsers() {
     return () => {
       active = false;
     };
-  }, [reloadToken, search]);
+  }, [reloadToken, search, showToast]);
 
   const displayUsers = useMemo(() => {
     const matched = [...users];
@@ -73,32 +76,38 @@ export default function ManageUsers() {
 
   const handleToggleUser = async (userId, currentStatus) => {
     try {
-      setPageError("");
       const nextStatus = currentStatus === "Active" ? "Inactive" : "Active";
       await usersApi.updateStatus(userId, { status: nextStatus });
       setReloadToken((current) => current + 1);
     } catch (error) {
-      setPageError(error.message || "Unable to update user status");
+      showToast({
+        variant: "danger",
+        message: error.message || "Unable to update user status",
+      });
     }
   };
 
   const handleRoleChange = async (userId, role) => {
     try {
-      setPageError("");
       await usersApi.updateRole(userId, { role });
       setReloadToken((current) => current + 1);
     } catch (error) {
-      setPageError(error.message || "Unable to update user role");
+      showToast({
+        variant: "danger",
+        message: error.message || "Unable to update user role",
+      });
     }
   };
 
   const handleDeleteUser = async (userId) => {
     try {
-      setPageError("");
       await usersApi.remove(userId);
       setReloadToken((current) => current + 1);
     } catch (error) {
-      setPageError(error.message || "Unable to delete user");
+      showToast({
+        variant: "danger",
+        message: error.message || "Unable to delete user",
+      });
     }
   };
 
@@ -114,12 +123,6 @@ export default function ManageUsers() {
             <h1>Manage Users</h1>
           </div>
         </header>
-
-        {pageError ? (
-          <div className="alert alert-danger mb-4" role="alert">
-            {pageError}
-          </div>
-        ) : null}
 
         {loading ? (
           <div className="alert alert-secondary mb-4" role="status">

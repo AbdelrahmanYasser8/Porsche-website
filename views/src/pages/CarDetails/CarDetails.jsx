@@ -380,7 +380,6 @@ export default function CarDetails() {
   });
   const [car, setCar] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
   const [selectedColor, setSelectedColor] = useState("Black");
   const [selectedWheel, setSelectedWheel] = useState("wheel_type1");
   const [isOrdering, setIsOrdering] = useState(false);
@@ -412,7 +411,6 @@ export default function CarDetails() {
     const loadCar = async () => {
       try {
         setLoading(true);
-        setError("");
 
         let response;
         if (id) {
@@ -427,7 +425,10 @@ export default function CarDetails() {
         }
       } catch (fetchError) {
         if (active) {
-          setError(fetchError.message || "Failed to load car details");
+          showToast({
+            variant: "danger",
+            message: fetchError.message || "Failed to load car details",
+          });
           setCar(null);
         }
       } finally {
@@ -442,7 +443,7 @@ export default function CarDetails() {
     return () => {
       active = false;
     };
-  }, [id]);
+  }, [id, showToast]);
 
   const handlePlaceOrder = async () => {
     if (isOutOfStock) {
@@ -563,12 +564,6 @@ export default function CarDetails() {
             <ColorSelector options={colorOptions} value={selectedColor} setColor={setSelectedColor} />
             <h5 className="my-4">Wheels</h5>
             <WheelSelector options={wheelOptions} value={selectedWheel} setWheel={setSelectedWheel} />
-
-            {error ? (
-              <div className="alert alert-danger mt-3 mb-0" role="alert">
-                {error}
-              </div>
-            ) : null}
 
             <button
               className={`w-100 fs-5 rounded-3 mt-4 ${styles["place-order"] || ""}`}

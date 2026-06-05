@@ -4,6 +4,7 @@ import "bootstrap/dist/css/bootstrap.min.css";
 import Navbar from "../../components/Navbar/Navbar";
 import Footer from "../../components/Footer/Footer";
 import CarCard from "../../components/CarCard/CarCard";
+import { useToast } from "../../components/Toast/ToastProvider";
 import { carsApi } from "../../api/cars";
 import { getCarFallbackImage } from "../../utils/carAssets";
 import styles from "./CarsListing.module.css";
@@ -32,6 +33,7 @@ const getCategoryFromPath = (pathname) => {
 
 export default function CarListing() {
   const location = useLocation();
+  const { showToast } = useToast();
   const [cars, setCars] = useState([]);
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState("All");
@@ -39,7 +41,6 @@ export default function CarListing() {
   const [priceMax, setPriceMax] = useState(1000000);
   const [year, setYear] = useState("All");
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
 
   useEffect(() => {
     const categoryFromUrl = getCategoryFromPath(location.pathname);
@@ -52,7 +53,6 @@ export default function CarListing() {
     const loadCars = async () => {
       try {
         setLoading(true);
-        setError("");
         const query = {
           search: search.trim() || undefined,
           category: category !== "All" ? category : undefined,
@@ -65,7 +65,10 @@ export default function CarListing() {
         }
       } catch (fetchError) {
         if (active) {
-          setError(fetchError.message || "Failed to load cars");
+          showToast({
+            variant: "danger",
+            message: fetchError.message || "Failed to load cars",
+          });
           setCars([]);
         }
       } finally {
@@ -80,7 +83,7 @@ export default function CarListing() {
     return () => {
       active = false;
     };
-  }, [category, priceRange, search, year]);
+  }, [category, priceRange, search, showToast, year]);
 
   const handleReset = () => {
     setCategory("All");
@@ -95,12 +98,6 @@ export default function CarListing() {
       <div className="container px-5 py-5" style={{ maxWidth: 1600 }}>
         <h1 className={`${styles.pageTitle} mb-3`}>Browse our collection</h1>
         <p className="text-secondary fs-6 mb-4">Explore our extensive selection of premium vehicles</p>
-
-        {error ? (
-          <div className="alert alert-danger" role="alert">
-            {error}
-          </div>
-        ) : null}
 
         <div className={`input-group mb-5 ps-2 d-flex align-items-center ${styles.searchWrapper}`} style={{ maxWidth: 600, height: 50 }}>
           <i className="fa-solid fa-magnifying-glass fs-5 ps-1 border-0"></i>

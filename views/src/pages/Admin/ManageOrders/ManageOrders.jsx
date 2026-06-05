@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import "bootstrap/dist/css/bootstrap.min.css";
 import { ordersApi } from "../../../api/orders";
+import { useToast } from "../../../components/Toast/ToastProvider";
 import styles from "./ManageOrders.module.css";
 
 const statusOptions = ["All", "Processing", "Completed", "Cancelled"];
@@ -11,12 +12,12 @@ function formatCurrency(value) {
 }
 
 export default function ManageOrders() {
+  const { showToast } = useToast();
   const [orders, setOrders] = useState([]);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("All");
   const [reloadToken, setReloadToken] = useState(0);
   const [loading, setLoading] = useState(true);
-  const [pageError, setPageError] = useState("");
 
   useEffect(() => {
     let active = true;
@@ -24,7 +25,6 @@ export default function ManageOrders() {
     const loadOrders = async () => {
       try {
         setLoading(true);
-        setPageError("");
         const response = await ordersApi.listAll({
           search: search.trim() || undefined,
           status: statusFilter,
@@ -35,7 +35,10 @@ export default function ManageOrders() {
         }
       } catch (error) {
         if (active) {
-          setPageError(error.message || "Failed to load orders");
+          showToast({
+            variant: "danger",
+            message: error.message || "Failed to load orders",
+          });
           setOrders([]);
         }
       } finally {
@@ -50,7 +53,7 @@ export default function ManageOrders() {
     return () => {
       active = false;
     };
-  }, [reloadToken, search, statusFilter]);
+  }, [reloadToken, search, showToast, statusFilter]);
 
   const processingCount = orders.filter((order) => order.status === "Processing").length;
   const completedCount = orders.filter((order) => order.status === "Completed").length;
@@ -60,21 +63,25 @@ export default function ManageOrders() {
 
   const handleDeleteOrder = async (orderId) => {
     try {
-      setPageError("");
       await ordersApi.delete(orderId);
       setReloadToken((current) => current + 1);
     } catch (error) {
-      setPageError(error.message || "Unable to delete order");
+      showToast({
+        variant: "danger",
+        message: error.message || "Unable to delete order",
+      });
     }
   };
 
   const handleStatusChange = async (orderId, status) => {
     try {
-      setPageError("");
       await ordersApi.updateStatus(orderId, { status });
       setReloadToken((current) => current + 1);
     } catch (error) {
-      setPageError(error.message || "Unable to update order status");
+      showToast({
+        variant: "danger",
+        message: error.message || "Unable to update order status",
+      });
     }
   };
 
@@ -90,12 +97,6 @@ export default function ManageOrders() {
             <h1>Manage Orders</h1>
           </div>
         </header>
-
-        {pageError ? (
-          <div className="alert alert-danger mb-4" role="alert">
-            {pageError}
-          </div>
-        ) : null}
 
         {loading ? (
           <div className="alert alert-secondary mb-4" role="status">

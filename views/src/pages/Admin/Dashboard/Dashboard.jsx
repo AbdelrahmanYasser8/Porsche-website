@@ -3,6 +3,7 @@ import "bootstrap/dist/css/bootstrap.min.css";
 import { Link } from "react-router-dom";
 import Footer from "../../../components/Footer/Footer";
 import Navbar from "../../../components/Navbar/Navbar";
+import { useToast } from "../../../components/Toast/ToastProvider";
 import { adminApi } from "../../../api/admin";
 import styles from "./Dashboard.module.css";
 
@@ -51,6 +52,7 @@ function StatusBadge({ status }) {
 }
 
 export default function Dashboard() {
+  const { showToast } = useToast();
   const [dashboard, setDashboard] = useState({
     stats: {
       totalUsers: 0,
@@ -61,7 +63,6 @@ export default function Dashboard() {
     recentOrders: [],
   });
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
 
   useEffect(() => {
     let active = true;
@@ -69,7 +70,6 @@ export default function Dashboard() {
     const loadDashboard = async () => {
       try {
         setLoading(true);
-        setError("");
         const response = await adminApi.getDashboardSummary();
 
         if (active) {
@@ -77,7 +77,10 @@ export default function Dashboard() {
         }
       } catch (fetchError) {
         if (active) {
-          setError(fetchError.message || "Failed to load dashboard");
+          showToast({
+            variant: "danger",
+            message: fetchError.message || "Failed to load dashboard",
+          });
         }
       } finally {
         if (active) {
@@ -91,7 +94,7 @@ export default function Dashboard() {
     return () => {
       active = false;
     };
-  }, []);
+  }, [showToast]);
 
   const stats = [
     {
@@ -131,12 +134,6 @@ export default function Dashboard() {
               </p>
             </div>
           </header>
-
-          {error ? (
-            <div className="alert alert-danger mb-4" role="alert">
-              {error}
-            </div>
-          ) : null}
 
           {!loading ? (
             <section className={styles.statsGrid} aria-label="Dashboard summary">
