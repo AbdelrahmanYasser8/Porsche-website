@@ -75,18 +75,29 @@
 @media (max-width: 767.98px) {
   .pagination {
     margin-top: 14px;
+    justify-content: center;
   }
 
   .controls {
+    display: flex;
     width: 100%;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 8px;
   }
 
   .pageList {
-    width: 100%;
-    justify-content: flex-start;
+    width: auto;
+    flex-wrap: nowrap;
+    justify-content: center;
+    min-width: 0;
   }
 
   .pageButton {
-    min-width: 40px;
+    min-width: 42px;
+    min-height: 42px;
+    padding: 0 14px;
+    flex: 0 0 auto;
+    line-height: 1.2;
   }
 }
