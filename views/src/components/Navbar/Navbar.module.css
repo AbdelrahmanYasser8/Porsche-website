@@ -73,20 +73,69 @@
 }
 
 .currencyDropdown {
+  display: inline-flex;
+  margin-right: 12px;
+  margin-top: 2px;
+}
+
+.currencyField {
   position: relative;
   display: flex;
   align-items: center;
-  margin-right: 10px;
-  margin-top: 4px;
+  gap: 10px;
+  min-height: 40px;
+  padding: 0 12px 0 10px;
+  width: fit-content;
+  border: 1px solid var(--border-color);
+  border-radius: 999px;
+  background: var(--bg-secondary);
+  box-shadow: var(--shadow-sm);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+}
+
+.currencyField:hover,
+.currencyField:focus-within {
+  border-color: var(--text-primary);
+  box-shadow: var(--shadow-md);
+}
+
+.transparentNavbar .currencyField {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.18);
+  backdrop-filter: blur(12px);
+}
+
+.transparentNavbar .currencyField:hover,
+.transparentNavbar .currencyField:focus-within {
+  border-color: rgba(255, 255, 255, 0.45);
+}
+
+.currencyBadge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+  height: 26px;
+  padding: 0 10px;
+  border-radius: 999px;
+  background: var(--hover-bg);
+  color: var(--text-primary);
+  font-size: 0.76rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+  flex: 0 0 auto;
+}
+
+.transparentNavbar .currencyBadge {
+  background: rgba(255, 255, 255, 0.14);
+  color: #ffffff;
 }
 
 .currencyArrow {
-  position: absolute;
-  right: 8px;
-  top: 50%;
-  transform: translateY(-50%);
+  position: static;
   pointer-events: none;
-  font-size: 0.7rem;
+  font-size: 0.76rem;
   color: var(--text-muted);
 }
 
@@ -95,22 +144,29 @@
 }
 
 .currencySelect {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  width: 100%;
+  -webkit-appearance: none;
+  -moz-appearance: none;
   appearance: none;
-  border: 1px solid var(--border-color);
-  border-radius: 6px;
+  border: 0;
+  border-radius: 0;
   background: transparent;
-  color: var(--text-primary);
+  color: transparent;
+  -webkit-text-fill-color: transparent;
+  text-shadow: none;
   font-size: 0.78rem;
   font-weight: 600;
-  padding: 4px 26px 4px 8px;
+  padding: 0;
   cursor: pointer;
   line-height: 1.4;
-  transition: border-color 0.2s ease, background-color 0.2s ease;
+  transition: color 0.2s ease;
 }
 
 .currencySelect:hover,
 .currencySelect:focus {
-  border-color: var(--text-muted);
   outline: none;
 }
 
@@ -120,7 +176,8 @@
 }
 
 [data-theme="dark"] .currencySelect {
-  background-color: #1a1a1a;
+  background-color: transparent;
+  color-scheme: dark;
 }
 
 [data-theme="dark"] .currencySelect option {
@@ -129,13 +186,15 @@
 }
 
 .transparentNavbar .currencySelect {
-  color: #ffffff;
-  border-color: rgba(255, 255, 255, 0.3);
+  background-color: transparent !important;
+  color: transparent;
+  -webkit-text-fill-color: transparent;
 }
 
-.transparentNavbar .currencySelect:hover,
-.transparentNavbar .currencySelect:focus {
-  border-color: rgba(255, 255, 255, 0.6);
+.transparentNavbar .mobileCurrencySelect {
+  background-color: transparent !important;
+  color: transparent !important;
+  -webkit-text-fill-color: transparent;
 }
 
 .themeToggle {
@@ -404,46 +463,27 @@
   }
 
   .mobileCurrencyWrapper {
-    position: relative;
+    display: flex;
     width: 100%;
+    margin-bottom: 2px;
   }
 
   .mobileCurrencySelect {
-    appearance: none;
-    border: 0;
-    border-bottom: 1px solid var(--border-light);
-    border-radius: 0;
-    background: transparent;
-    color: var(--text-primary) !important;
     font-size: 0.98rem !important;
-    font-weight: 500;
-    padding: 12px 26px 12px 2px !important;
-    cursor: pointer;
-    width: 100%;
+    font-weight: 600;
   }
 
   .mobileCurrencyArrow {
-    position: absolute;
-    right: 6px;
-    top: 50%;
-    transform: translateY(-50%);
     pointer-events: none;
-    font-size: 0.8rem;
+    font-size: 0.76rem;
     color: var(--text-muted);
-  }
-
-  .mobileCurrencySelect option {
-    background-color: #ffffff;
-    color: #111111;
-  }
-
-  [data-theme="dark"] .mobileCurrencySelect {
-    background-color: #1a1a1a;
   }
 
   [data-theme="dark"] .mobileCurrencySelect option {
     background-color: #1a1a1a;
     color: #e0e0e0;
+  }
+
   .accountArea > .themeToggle {
     display: none;
   }
