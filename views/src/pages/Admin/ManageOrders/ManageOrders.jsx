@@ -148,10 +148,6 @@ export default function ManageOrders() {
           </div>
         </header>
 
-        {loading ? (
-          <Loader label="Loading orders..." />
-        ) : null}
-
         <section className={styles.controls} aria-label="Order filters">
           <label className={styles.searchBox} htmlFor="admin-order-search">
             <i className="fa-solid fa-magnifying-glass"></i>
@@ -185,6 +181,10 @@ export default function ManageOrders() {
             </select>
           </label>
         </section>
+
+        {loading ? (
+          <Loader label="Loading orders..." />
+        ) : null}
 
         {!loading ? (
           <>

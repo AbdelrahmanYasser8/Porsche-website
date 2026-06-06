@@ -4,7 +4,6 @@ import Loader from "../../../components/Loader/Loader";
 import Pagination from "../../../components/Pagination/Pagination";
 import { carsApi } from "../../../api/cars";
 import { useToast } from "../../../components/Toast/ToastProvider";
-import { getCarFallbackImage } from "../../../utils/carAssets";
 import styles from './ManageCars.module.css';
 
 const wheelOptions = ['Wheel Type 1', 'Wheel Type 2', 'Wheel Type 3', 'Wheel Type 4'];
@@ -522,10 +521,6 @@ export default function ManageCars() {
           </button>
         </header>
 
-        {loading ? (
-          <Loader label="Loading cars..." />
-        ) : null}
-
         <section className={styles.controls} aria-label="Car filters">
           <label className={styles.searchBox} htmlFor="admin-car-search">
             <i className="fa-solid fa-magnifying-glass"></i>
@@ -541,6 +536,10 @@ export default function ManageCars() {
             />
           </label>
         </section>
+
+        {loading ? (
+          <Loader label="Loading cars..." />
+        ) : null}
 
         {!loading ? (
           <>
@@ -577,7 +576,7 @@ export default function ManageCars() {
                     {cars.map((car) => (
                       <tr key={car.id}>
                         <td>
-                          <img className={styles.carImage} src={getCarFallbackImage(car)} alt={car.name} />
+                          <img className={styles.carImage} src={car.image} alt={car.name} />
                         </td>
                         <td>
                           <div className={styles.primaryText}>{car.name}</div>

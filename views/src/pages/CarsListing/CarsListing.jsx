@@ -7,7 +7,6 @@ import Loader from "../../components/Loader/Loader";
 import Pagination from "../../components/Pagination/Pagination";
 import { useToast } from "../../components/Toast/ToastProvider";
 import { carsApi } from "../../api/cars";
-import { getCarFallbackImage } from "../../utils/carAssets";
 import { useCurrency } from "../../context/CurrencyContext";
 import styles from "./CarsListing.module.css";
 
@@ -235,7 +234,7 @@ export default function CarListing() {
                       fuel={car.fuelType}
                       seats={car.seating}
                       price={car.price}
-                      image={getCarFallbackImage(car)}
+                      image={car.image}
                       status={car.status}
                     />
                   ))

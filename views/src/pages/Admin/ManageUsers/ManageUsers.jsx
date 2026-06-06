@@ -186,10 +186,6 @@ export default function ManageUsers() {
           </div>
         </header>
 
-        {loading ? (
-          <Loader label="Loading users..." />
-        ) : null}
-
         <label className={styles.searchBox} htmlFor="admin-user-search">
           <i className="fa-solid fa-magnifying-glass"></i>
           <input
@@ -203,6 +199,10 @@ export default function ManageUsers() {
             placeholder="Search users by name or email..."
           />
         </label>
+
+        {loading ? (
+          <Loader label="Loading users..." />
+        ) : null}
 
         {!loading ? (
           <>
