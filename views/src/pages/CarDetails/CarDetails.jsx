@@ -11,6 +11,7 @@ import { carsApi } from "../../api/cars";
 import { ordersApi } from "../../api/orders";
 import { useToast } from "../../components/Toast/ToastProvider";
 import { useAuth } from "../../context/AuthContext";
+import { useCurrency } from "../../context/CurrencyContext";
 import wheel1 from "../../assets/images/wheel_type1.png";
 import wheel2 from "../../assets/images/wheel_type2.png";
 import wheel3 from "../../assets/images/wheel_type3.png";
@@ -374,6 +375,7 @@ export default function CarDetails() {
   const { id } = useParams();
   const { user } = useAuth();
   const { showToast } = useToast();
+  const { formatPrice } = useCurrency();
   const orbitRef = useRef();
   const [cameraTarget, setCameraTarget] = useState({
     position: [1.95, 0.51, 4.37],
@@ -532,7 +534,7 @@ export default function CarDetails() {
               </>
             )}
             <h5>Price</h5>
-            <p className="fs-2">{car ? `$${Number(car.price || 0).toLocaleString()}` : "N/A"}</p>
+            <p className="fs-2">{car ? formatPrice(car.price) : "N/A"}</p>
             <h5 className="my-4">Description</h5>
             <p className="text-secondary">{car?.description || "No description available."}</p>
             <h5 className="my-4">Colours</h5>

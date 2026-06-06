@@ -1,14 +1,18 @@
 import styles from "./Navbar.module.css";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "bootstrap/dist/js/bootstrap.bundle.min.js";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import { useTheme } from "../../context/ThemeContext";
+import { useCurrency } from "../../context/CurrencyContext";
 
 export default function Navbar({ transparent = false }) {
   const navigate = useNavigate();
   const { user, logout } = useAuth();
   const { toggleTheme, isDark } = useTheme();
+  const { currency, setCurrency, currencies } = useCurrency();
+  const location = useLocation();
+  const showCurrency = location.pathname.startsWith("/shop") || location.pathname.startsWith("/CarDetails");
 
   const navClass = `${styles.navbarCustom} ${
     transparent ? styles.transparentNavbar : styles.defaultNavbar
@@ -75,6 +79,23 @@ export default function Navbar({ transparent = false }) {
         </div>
 
         <div className={styles.accountArea}>
+            {showCurrency && (
+            <div className={styles.currencyDropdown}>
+              <select
+                className={styles.currencySelect}
+                value={currency}
+                onChange={(e) => setCurrency(e.target.value)}
+                aria-label="Select currency"
+              >
+                {currencies.map((c) => (
+                  <option key={c.code} value={c.code}>
+                    {c.label}
+                  </option>
+                ))}
+              </select>
+              <i className={`fa-solid fa-sort-down ${styles.currencyArrow}`}></i>
+            </div>
+          )}
           <button
             className={`${styles.themeToggle} ${transparent ? styles.transparentIcon : styles.defaultIcon}`}
             onClick={toggleTheme}
@@ -145,6 +166,23 @@ export default function Navbar({ transparent = false }) {
           </div>
 
           <div className={styles.mobileAccountLinks}>
+          {showCurrency && (
+              <div className={styles.mobileCurrencyWrapper}>
+                <select
+                  className={`${linkClass} ${styles.mobileCurrencySelect}`}
+                  value={currency}
+                  onChange={(e) => setCurrency(e.target.value)}
+                  aria-label="Select currency"
+                >
+                  {currencies.map((c) => (
+                    <option key={c.code} value={c.code}>
+                      {c.label}
+                    </option>
+                  ))}
+                </select>
+                <i className={`fa-solid fa-sort-down ${styles.mobileCurrencyArrow}`}></i>
+              </div>
+            )}
             <button
               className={`${linkClass} ${styles.mobileAccountLink}`}
               onClick={toggleTheme}
