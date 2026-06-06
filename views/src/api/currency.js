@@ -3,10 +3,7 @@ const FALLBACK_RATES = {
   CHF: 0.79, CNY: 6.77,
 };
 
-const API_URLS = [
-  "https://open.er-api.com/v6/latest/USD",
-];
-
+const API_URL = "https://open.er-api.com/v6/latest/USD";
 const CACHE_KEY = "porsche-rates-cache";
 const CACHE_TTL = 3600000;
 
@@ -17,32 +14,35 @@ function getCached() {
       const { rates, ts } = JSON.parse(raw);
       if (Date.now() - ts < CACHE_TTL) return rates;
     }
-  } catch {}
+  } catch {
+    return null;
+  }
   return null;
 }
 
 function setCached(rates) {
   try {
     localStorage.setItem(CACHE_KEY, JSON.stringify({ rates, ts: Date.now() }));
-  } catch {}
+  } catch {
+    // Currency conversion still works with fallback rates if storage is unavailable.
+  }
 }
 
 export async function fetchExchangeRates() {
   const cached = getCached();
   if (cached) return cached;
 
-  for (const url of API_URLS) {
-    try {
-      const res = await fetch(url);
-      const data = await res.json();
-      const rates = data.rates;
-      if (rates) {
-        setCached(rates);
-        return rates;
+  try {
+    const response = await fetch(API_URL);
+    if (response.ok) {
+      const data = await response.json();
+      if (data.rates) {
+        setCached(data.rates);
+        return data.rates;
       }
-    } catch {
-      continue;
     }
+  } catch {
+    // Use bundled rates when the exchange-rate service is unavailable.
   }
 
   return FALLBACK_RATES;

@@ -15,7 +15,9 @@ function getInitialCurrency() {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (raw && CURRENCIES.some((c) => c.code === raw)) return raw;
-  } catch {}
+  } catch {
+    // Default to USD if browser storage is unavailable.
+  }
   return "USD";
 }
 
@@ -26,7 +28,11 @@ export function CurrencyProvider({ children }) {
   const [rates, setRates] = useState(null);
 
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, currency);
+    try {
+      localStorage.setItem(STORAGE_KEY, currency);
+    } catch {
+      // Currency selection remains active for the current session.
+    }
   }, [currency]);
 
   useEffect(() => {

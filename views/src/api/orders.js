@@ -1,29 +1,11 @@
-import { apiRequest } from "./client";
+import { apiRequest, buildApiUrl } from "./client";
 
 export const ordersApi = {
   listAll(query = {}) {
-    const searchParams = new URLSearchParams();
-
-    Object.entries(query).forEach(([key, value]) => {
-      if (value !== undefined && value !== null && value !== "" && value !== "All") {
-        searchParams.set(key, value);
-      }
-    });
-
-    const queryString = searchParams.toString();
-    return apiRequest(`/api/orders${queryString ? `?${queryString}` : ""}`);
+    return apiRequest(buildApiUrl("/api/orders", query));
   },
   listMine(query = {}) {
-    const searchParams = new URLSearchParams();
-
-    Object.entries(query).forEach(([key, value]) => {
-      if (value !== undefined && value !== null && value !== "" && value !== "All") {
-        searchParams.set(key, value);
-      }
-    });
-
-    const queryString = searchParams.toString();
-    return apiRequest(`/api/orders/mine${queryString ? `?${queryString}` : ""}`);
+    return apiRequest(buildApiUrl("/api/orders/mine", query));
   },
   create(payload) {
     return apiRequest("/api/orders", {

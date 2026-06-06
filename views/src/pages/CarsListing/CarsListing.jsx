@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
-import "bootstrap/dist/css/bootstrap.min.css";
 import Navbar from "../../components/Navbar/Navbar";
 import Footer from "../../components/Footer/Footer";
 import CarCard from "../../components/CarCard/CarCard";
@@ -16,24 +15,14 @@ const CATEGORIES = ["All", "SUV", "Sports", "Electric", "Sedan"];
 const YEARS = ["All", "2024", "2025", "2026"];
 const PRICE_MAX = 1000000;
 
-const getCategoryFromPath = (pathname) => {
-  const path = pathname.replace("/", "").toLowerCase();
+const CATEGORY_BY_SLUG = Object.fromEntries(
+  CATEGORIES.map((category) => [category.toLowerCase(), category]),
+);
 
-  switch (path) {
-    case "shop/suv":
-      return "SUV";
-    case "shop/sports":
-      return "Sports";
-    case "shop/electric":
-      return "Electric";
-    case "shop/sedan":
-      return "Sedan";
-    case "shop":
-      return "All";
-    default:
-      return "All";
-  }
-};
+function getCategoryFromPath(pathname) {
+  const slug = pathname.split("/")[2]?.toLowerCase();
+  return CATEGORY_BY_SLUG[slug] || "All";
+}
 
 export default function CarListing() {
   const location = useLocation();

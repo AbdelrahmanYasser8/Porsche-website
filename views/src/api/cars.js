@@ -1,19 +1,8 @@
-import { apiRequest } from "./client";
+import { apiRequest, buildApiUrl } from "./client";
 
 export const carsApi = {
   list(query = {}) {
-    const searchParams = new URLSearchParams();
-
-    Object.entries(query).forEach(([key, value]) => {
-      if (value !== undefined && value !== null && value !== "" && value !== "All") {
-        searchParams.set(key, value);
-      }
-    });
-
-    const queryString = searchParams.toString();
-    return apiRequest(`/api/cars${queryString ? `?${queryString}` : ""}`, {
-      cache: "no-store",
-    });
+    return apiRequest(buildApiUrl("/api/cars", query));
   },
   get(id) {
     return apiRequest(`/api/cars/${id}`);

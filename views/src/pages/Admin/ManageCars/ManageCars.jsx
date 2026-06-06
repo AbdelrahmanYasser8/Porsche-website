@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
-import 'bootstrap/dist/css/bootstrap.min.css';
 import Loader from "../../../components/Loader/Loader";
 import Pagination from "../../../components/Pagination/Pagination";
 import { carsApi } from "../../../api/cars";

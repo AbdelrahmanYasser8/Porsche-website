@@ -25,7 +25,20 @@ function buildErrorMessage(data, fallbackMessage) {
   return fallbackMessage;
 }
 
-export function ajaxRequest(path, options = {}) {
+export function buildApiUrl(path, query = {}) {
+  const searchParams = new URLSearchParams();
+
+  Object.entries(query).forEach(([key, value]) => {
+    if (value !== undefined && value !== null && value !== "" && value !== "All") {
+      searchParams.set(key, value);
+    }
+  });
+
+  const queryString = searchParams.toString();
+  return queryString ? `${path}?${queryString}` : path;
+}
+
+export function apiRequest(path, options = {}) {
   const { body, headers, method = "GET" } = options;
   const requestHeaders = { ...(headers || {}) };
   let requestBody = body;
@@ -85,5 +98,3 @@ export function ajaxRequest(path, options = {}) {
     xhr.send(requestBody instanceof URLSearchParams ? requestBody.toString() : requestBody);
   });
 }
-
-export const apiRequest = ajaxRequest;

@@ -1,4 +1,3 @@
-import 'bootstrap/dist/css/bootstrap.min.css';
 import styles from './CarCard.module.css';
 import { Link } from "react-router-dom";
 import { useCurrency } from "../../context/CurrencyContext";
