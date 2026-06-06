@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import "bootstrap/dist/css/bootstrap.min.css";
 import Loader from "../../../components/Loader/Loader";
+import Pagination from "../../../components/Pagination/Pagination";
 import { ordersApi } from "../../../api/orders";
 import { useToast } from "../../../components/Toast/ToastProvider";
 import styles from "./ManageOrders.module.css";
@@ -15,10 +16,24 @@ function formatCurrency(value) {
 export default function ManageOrders() {
   const { showToast } = useToast();
   const [orders, setOrders] = useState([]);
+  const [pagination, setPagination] = useState({
+    page: 1,
+    limit: 8,
+    totalItems: 0,
+    totalPages: 0,
+  });
+  const [summary, setSummary] = useState({
+    totalOrders: 0,
+    processingCount: 0,
+    completedCount: 0,
+    totalRevenue: 0,
+  });
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("All");
   const [reloadToken, setReloadToken] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [currentPage, setCurrentPage] = useState(1);
+  const pageSize = 8;
 
   useEffect(() => {
     let active = true;
@@ -29,10 +44,42 @@ export default function ManageOrders() {
         const response = await ordersApi.listAll({
           search: search.trim() || undefined,
           status: statusFilter,
+          page: currentPage,
+          limit: pageSize,
         });
 
         if (active) {
-          setOrders(response);
+          const nextOrders = Array.isArray(response) ? response : response.items || [];
+          setOrders(nextOrders);
+          if (response && typeof response === "object" && "pagination" in response) {
+            setPagination(response.pagination);
+            setSummary({
+              totalOrders: response.summary?.totalOrders ?? response.pagination.totalItems ?? nextOrders.length,
+              processingCount: response.summary?.processingCount ?? nextOrders.filter((order) => order.status === "Processing").length,
+              completedCount: response.summary?.completedCount ?? nextOrders.filter((order) => order.status === "Completed").length,
+              totalRevenue: response.summary?.totalRevenue ?? nextOrders
+                .filter((order) => order.status !== "Cancelled")
+                .reduce((total, order) => total + Number(order.amount || 0), 0),
+            });
+            setCurrentPage(response.pagination.page || currentPage);
+          } else {
+            const processingCount = nextOrders.filter((order) => order.status === "Processing").length;
+            const completedCount = nextOrders.filter((order) => order.status === "Completed").length;
+            setPagination({
+              page: currentPage,
+              limit: pageSize,
+              totalItems: nextOrders.length,
+              totalPages: nextOrders.length ? 1 : 0,
+            });
+            setSummary({
+              totalOrders: nextOrders.length,
+              processingCount,
+              completedCount,
+              totalRevenue: nextOrders
+                .filter((order) => order.status !== "Cancelled")
+                .reduce((total, order) => total + Number(order.amount || 0), 0),
+            });
+          }
         }
       } catch (error) {
         if (active) {
@@ -41,6 +88,18 @@ export default function ManageOrders() {
             message: error.message || "Failed to load orders",
           });
           setOrders([]);
+          setPagination({
+            page: 1,
+            limit: pageSize,
+            totalItems: 0,
+            totalPages: 0,
+          });
+          setSummary({
+            totalOrders: 0,
+            processingCount: 0,
+            completedCount: 0,
+            totalRevenue: 0,
+          });
         }
       } finally {
         if (active) {
@@ -54,13 +113,12 @@ export default function ManageOrders() {
     return () => {
       active = false;
     };
-  }, [reloadToken, search, showToast, statusFilter]);
+  }, [currentPage, pageSize, reloadToken, search, showToast, statusFilter]);
 
-  const processingCount = orders.filter((order) => order.status === "Processing").length;
-  const completedCount = orders.filter((order) => order.status === "Completed").length;
-  const totalRevenue = orders
-    .filter((order) => order.status !== "Cancelled")
-    .reduce((total, order) => total + Number(order.amount || 0), 0);
+  const processingCount = summary.processingCount;
+  const completedCount = summary.completedCount;
+  const totalRevenue = summary.totalRevenue;
+  const totalPages = pagination.totalPages;
 
   const handleStatusChange = async (orderId, status) => {
     try {
@@ -72,6 +130,10 @@ export default function ManageOrders() {
         message: error.message || "Unable to update order status",
       });
     }
+  };
+
+  const handlePageChange = (page) => {
+    setCurrentPage(Math.max(page, 1));
   };
 
   return (
@@ -98,7 +160,10 @@ export default function ManageOrders() {
               id="admin-order-search"
               type="search"
               value={search}
-              onChange={(event) => setSearch(event.target.value)}
+              onChange={(event) => {
+                setSearch(event.target.value);
+                setCurrentPage(1);
+              }}
               placeholder="Search by order ID, customer, or product..."
             />
           </label>
@@ -108,7 +173,10 @@ export default function ManageOrders() {
             <select
               id="admin-order-status"
               value={statusFilter}
-              onChange={(event) => setStatusFilter(event.target.value)}
+              onChange={(event) => {
+                setStatusFilter(event.target.value);
+                setCurrentPage(1);
+              }}
             >
               {statusOptions.map((status) => (
                 <option key={status} value={status}>
@@ -124,7 +192,7 @@ export default function ManageOrders() {
             <section className={styles.summaryGrid} aria-label="Order summary">
               <article className={styles.summaryCard}>
                 <span>Total Orders</span>
-                <strong>{orders.length}</strong>
+                <strong>{summary.totalOrders}</strong>
               </article>
               <article className={styles.summaryCard}>
                 <span>Processing</span>
@@ -203,6 +271,15 @@ export default function ManageOrders() {
                 <div className={styles.emptyState}>No orders match your filters.</div>
               ) : null}
             </section>
+
+            <Pagination
+              currentPage={pagination.page}
+              totalPages={totalPages}
+              totalItems={pagination.totalItems}
+              onPageChange={handlePageChange}
+              itemLabel="orders"
+              itemLabelSingular="order"
+            />
           </>
         ) : null}
       </div>

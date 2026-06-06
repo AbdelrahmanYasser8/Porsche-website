@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import Loader from "../../../components/Loader/Loader";
+import Pagination from "../../../components/Pagination/Pagination";
 import { carsApi } from "../../../api/cars";
 import { useToast } from "../../../components/Toast/ToastProvider";
 import { getCarFallbackImage } from "../../../utils/carAssets";
@@ -167,6 +168,17 @@ function getVisibleError(submitted, touched, field, error) {
 export default function ManageCars() {
   const { showToast } = useToast();
   const [cars, setCars] = useState([]);
+  const [pagination, setPagination] = useState({
+    page: 1,
+    limit: 8,
+    totalItems: 0,
+    totalPages: 0,
+  });
+  const [summary, setSummary] = useState({
+    totalCars: 0,
+    inStock: 0,
+    outStock: 0,
+  });
   const [search, setSearch] = useState('');
   const [reloadToken, setReloadToken] = useState(0);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -177,6 +189,8 @@ export default function ManageCars() {
   const [formSubmitted, setFormSubmitted] = useState(false);
   const [loading, setLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const pageSize = 8;
 
   useEffect(() => {
     let active = true;
@@ -184,10 +198,37 @@ export default function ManageCars() {
     const loadCars = async () => {
       try {
         setLoading(true);
-        const response = await carsApi.list({ search: search.trim() || undefined });
+        const response = await carsApi.list({
+          search: search.trim() || undefined,
+          page: currentPage,
+          limit: pageSize,
+        });
 
         if (active) {
-          setCars(response);
+          const nextCars = Array.isArray(response) ? response : response.items || [];
+          setCars(nextCars);
+          if (response && typeof response === 'object' && 'pagination' in response) {
+            setPagination(response.pagination);
+            setSummary({
+              totalCars: response.summary?.totalCars ?? response.pagination.totalItems ?? nextCars.length,
+              inStock: response.summary?.inStock ?? nextCars.filter((car) => car.status === 'In Stock').length,
+              outStock: response.summary?.outStock ?? nextCars.filter((car) => car.status !== 'In Stock').length,
+            });
+            setCurrentPage(response.pagination.page || currentPage);
+          } else {
+            const inStockCount = nextCars.filter((car) => car.status === 'In Stock').length;
+            setPagination({
+              page: currentPage,
+              limit: pageSize,
+              totalItems: nextCars.length,
+              totalPages: nextCars.length ? 1 : 0,
+            });
+            setSummary({
+              totalCars: nextCars.length,
+              inStock: inStockCount,
+              outStock: nextCars.length - inStockCount,
+            });
+          }
         }
       } catch (error) {
         if (active) {
@@ -196,6 +237,17 @@ export default function ManageCars() {
             message: error.message || 'Failed to load cars',
           });
           setCars([]);
+          setPagination({
+            page: 1,
+            limit: pageSize,
+            totalItems: 0,
+            totalPages: 0,
+          });
+          setSummary({
+            totalCars: 0,
+            inStock: 0,
+            outStock: 0,
+          });
         }
       } finally {
         if (active) {
@@ -209,14 +261,15 @@ export default function ManageCars() {
     return () => {
       active = false;
     };
-  }, [reloadToken, search, showToast]);
+  }, [currentPage, pageSize, reloadToken, search, showToast]);
 
-  const totalCars = cars.length;
-  const inStock = useMemo(
-    () => cars.filter((car) => car.status === 'In Stock').length,
-    [cars],
-  );
+  const totalCars = summary.totalCars;
+  const inStock = useMemo(() => summary.inStock, [summary.inStock]);
+  const totalPages = pagination.totalPages;
   const dialogTitle = editingCarId ? 'Edit Car' : 'Add New Car';
+  const handlePageChange = (page) => {
+    setCurrentPage(Math.max(page, 1));
+  };
 
   const openAddDialog = () => {
     setEditingCarId(null);
@@ -481,7 +534,10 @@ export default function ManageCars() {
               id="admin-car-search"
               type="search"
               value={search}
-              onChange={(event) => setSearch(event.target.value)}
+              onChange={(event) => {
+                setSearch(event.target.value);
+                setCurrentPage(1);
+              }}
               placeholder="Search by car name, category, year, or status..."
             />
           </label>
@@ -572,6 +628,15 @@ export default function ManageCars() {
                 <div className={styles.emptyState}>No cars match your search.</div>
               ) : null}
             </section>
+
+            <Pagination
+              currentPage={pagination.page}
+              totalPages={totalPages}
+              totalItems={pagination.totalItems}
+              onPageChange={handlePageChange}
+              itemLabel="cars"
+              itemLabelSingular="car"
+            />
           </>
         ) : null}
       </div>

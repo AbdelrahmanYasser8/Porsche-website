@@ -1,6 +1,10 @@
 const User = require("../models/User");
 const Order = require("../models/Order");
 const { serializeUser } = require("../utils/serializers");
+const {
+  buildPagination,
+  getPaginationParams,
+} = require("../utils/pagination");
 
 async function buildUserOrderCounts(userIds) {
   if (!userIds.length) {
@@ -33,6 +37,7 @@ async function buildUserOrderCounts(userIds) {
 async function listUsers(req, res) {
   try {
     const { search, status, role } = req.query;
+    const pagination = getPaginationParams(req.query, 8);
     const filter = {};
     const normalizedSearch = search?.trim();
 
@@ -53,8 +58,23 @@ async function listUsers(req, res) {
 
     const users = await User.find(filter).sort({ createdAt: -1 });
     const orderCounts = await buildUserOrderCounts(users.map((user) => user._id));
+    const serializedUsers = users.map((user) => serializeUser(user, orderCounts.get(user._id.toString()) || 0));
 
-    res.json(users.map((user) => serializeUser(user, orderCounts.get(user._id.toString()) || 0)));
+    if (!pagination) {
+      return res.json(serializedUsers);
+    }
+
+    const summary = {
+      totalUsers: serializedUsers.length,
+      activeUsers: serializedUsers.filter((user) => user.status === "Active").length,
+      inactiveUsers: serializedUsers.filter((user) => user.status !== "Active").length,
+      totalOrders: serializedUsers.reduce((total, user) => total + Number(user.ordersCount || 0), 0),
+    };
+    const paginated = buildPagination(serializedUsers, pagination.page, pagination.limit);
+    res.json({
+      ...paginated,
+      summary,
+    });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }

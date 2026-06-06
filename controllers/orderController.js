@@ -1,9 +1,14 @@
 const Order = require("../models/Order");
 const { serializeOrder } = require("../utils/serializers");
+const {
+  buildPagination,
+  getPaginationParams,
+} = require("../utils/pagination");
 
 const getAll = async (req, res) => {
   try {
     const { search, status } = req.query;
+    const pagination = getPaginationParams(req.query, 8);
     const normalizedSearch = search?.trim().toLowerCase();
     const orders = await Order.find().sort({ createdAt: -1 });
     const serializedOrders = orders.map(serializeOrder);
@@ -31,7 +36,23 @@ const getAll = async (req, res) => {
       return matchesStatus && matchesSearch;
     });
 
-    res.json(filteredOrders);
+    if (!pagination) {
+      return res.json(filteredOrders);
+    }
+
+    const summary = {
+      totalOrders: filteredOrders.length,
+      processingCount: filteredOrders.filter((order) => order.status === "Processing").length,
+      completedCount: filteredOrders.filter((order) => order.status === "Completed").length,
+      totalRevenue: filteredOrders
+        .filter((order) => order.status !== "Cancelled")
+        .reduce((total, order) => total + Number(order.amount || 0), 0),
+    };
+    const paginated = buildPagination(filteredOrders, pagination.page, pagination.limit);
+    res.json({
+      ...paginated,
+      summary,
+    });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -42,8 +63,21 @@ const getMyOrders = async (req, res) => {
     if (!req.user) {
       return res.status(401).json({ error: "Not authenticated" });
     }
+    const pagination = getPaginationParams(req.query, 5);
     const orders = await Order.find({ user: req.user._id }).sort({ createdAt: -1 });
-    res.json(orders.map(serializeOrder));
+    const serializedOrders = orders.map(serializeOrder);
+
+    if (!pagination) {
+      return res.json(serializedOrders);
+    }
+
+    const paginated = buildPagination(serializedOrders, pagination.page, pagination.limit);
+    res.json({
+      ...paginated,
+      summary: {
+        totalOrders: serializedOrders.length,
+      },
+    });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

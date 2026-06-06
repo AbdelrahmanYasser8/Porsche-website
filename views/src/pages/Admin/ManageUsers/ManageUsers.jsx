@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import "bootstrap/dist/css/bootstrap.min.css";
 import Loader from "../../../components/Loader/Loader";
+import Pagination from "../../../components/Pagination/Pagination";
 import { usersApi } from "../../../api/users";
 import { useToast } from "../../../components/Toast/ToastProvider";
 import { useAuth } from "../../../context/AuthContext";
@@ -22,9 +23,23 @@ export default function ManageUsers() {
   const { user: currentUser } = useAuth();
   const { showToast } = useToast();
   const [users, setUsers] = useState([]);
+  const [pagination, setPagination] = useState({
+    page: 1,
+    limit: 8,
+    totalItems: 0,
+    totalPages: 0,
+  });
+  const [summary, setSummary] = useState({
+    totalUsers: 0,
+    activeUsers: 0,
+    inactiveUsers: 0,
+    totalOrders: 0,
+  });
   const [search, setSearch] = useState("");
   const [reloadToken, setReloadToken] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [currentPage, setCurrentPage] = useState(1);
+  const pageSize = 8;
 
   useEffect(() => {
     let active = true;
@@ -32,10 +47,39 @@ export default function ManageUsers() {
     const loadUsers = async () => {
       try {
         setLoading(true);
-        const response = await usersApi.list({ search: search.trim() || undefined });
+        const response = await usersApi.list({
+          search: search.trim() || undefined,
+          page: currentPage,
+          limit: pageSize,
+        });
 
         if (active) {
-          setUsers(response);
+          const nextUsers = Array.isArray(response) ? response : response.items || [];
+          setUsers(nextUsers);
+          if (response && typeof response === "object" && "pagination" in response) {
+            setPagination(response.pagination);
+            setSummary({
+              totalUsers: response.summary?.totalUsers ?? response.pagination.totalItems ?? nextUsers.length,
+              activeUsers: response.summary?.activeUsers ?? nextUsers.filter((user) => user.status === "Active").length,
+              inactiveUsers: response.summary?.inactiveUsers ?? nextUsers.filter((user) => user.status !== "Active").length,
+              totalOrders: response.summary?.totalOrders ?? nextUsers.reduce((total, user) => total + Number(user.ordersCount ?? user.orders ?? 0), 0),
+            });
+            setCurrentPage(response.pagination.page || currentPage);
+          } else {
+            const activeCount = nextUsers.filter((user) => user.status === "Active").length;
+            setPagination({
+              page: currentPage,
+              limit: pageSize,
+              totalItems: nextUsers.length,
+              totalPages: nextUsers.length ? 1 : 0,
+            });
+            setSummary({
+              totalUsers: nextUsers.length,
+              activeUsers: activeCount,
+              inactiveUsers: nextUsers.length - activeCount,
+              totalOrders: nextUsers.reduce((total, user) => total + Number(user.ordersCount ?? user.orders ?? 0), 0),
+            });
+          }
         }
       } catch (error) {
         if (active) {
@@ -44,6 +88,18 @@ export default function ManageUsers() {
             message: error.message || "Failed to load users",
           });
           setUsers([]);
+          setPagination({
+            page: 1,
+            limit: pageSize,
+            totalItems: 0,
+            totalPages: 0,
+          });
+          setSummary({
+            totalUsers: 0,
+            activeUsers: 0,
+            inactiveUsers: 0,
+            totalOrders: 0,
+          });
         }
       } finally {
         if (active) {
@@ -57,7 +113,7 @@ export default function ManageUsers() {
     return () => {
       active = false;
     };
-  }, [reloadToken, search, showToast]);
+  }, [currentPage, pageSize, reloadToken, search, showToast]);
 
   const displayUsers = useMemo(() => {
     const matched = [...users];
@@ -71,9 +127,11 @@ export default function ManageUsers() {
     return matched;
   }, [users, currentUser]);
 
-  const totalOrders = users.reduce((total, user) => total + Number(user.ordersCount ?? user.orders ?? 0), 0);
-  const activeUsers = users.filter((user) => user.status === "Active").length;
-  const inactiveUsers = users.length - activeUsers;
+  const totalUsers = summary.totalUsers;
+  const totalOrders = summary.totalOrders;
+  const activeUsers = summary.activeUsers;
+  const inactiveUsers = summary.inactiveUsers;
+  const totalPages = pagination.totalPages;
 
   const handleToggleUser = async (userId, currentStatus) => {
     try {
@@ -112,6 +170,10 @@ export default function ManageUsers() {
     }
   };
 
+  const handlePageChange = (page) => {
+    setCurrentPage(Math.max(page, 1));
+  };
+
   return (
     <main className={styles.page}>
       <div className={styles.container}>
@@ -135,7 +197,10 @@ export default function ManageUsers() {
             id="admin-user-search"
             type="search"
             value={search}
-            onChange={(event) => setSearch(event.target.value)}
+            onChange={(event) => {
+              setSearch(event.target.value);
+              setCurrentPage(1);
+            }}
             placeholder="Search users by name or email..."
           />
         </label>
@@ -145,7 +210,7 @@ export default function ManageUsers() {
             <section className={styles.summaryGrid} aria-label="User summary">
               <article className={styles.summaryCard}>
                 <span>Total Users</span>
-                <strong>{users.length}</strong>
+                <strong>{totalUsers}</strong>
               </article>
               <article className={styles.summaryCard}>
                 <span>Active Users</span>
@@ -249,6 +314,15 @@ export default function ManageUsers() {
                 <div className={styles.emptyState}>No users match your search.</div>
               ) : null}
             </section>
+
+            <Pagination
+              currentPage={pagination.page}
+              totalPages={totalPages}
+              totalItems={pagination.totalItems}
+              onPageChange={handlePageChange}
+              itemLabel="users"
+              itemLabelSingular="user"
+            />
           </>
         ) : null}
       </div>

@@ -4,6 +4,10 @@ const {
   normalizeCarInput,
   serializeCar,
 } = require("../utils/serializers");
+const {
+  buildPagination,
+  getPaginationParams,
+} = require("../utils/pagination");
 
 const GridFSBucket = mongoose.mongo.GridFSBucket;
 const ObjectId = mongoose.mongo.ObjectId;
@@ -40,6 +44,7 @@ function uploadBufferToGridFs(buffer, { filename, contentType }) {
 const getAll = async (req, res) => {
   try {
     const { category, search, year, maxPrice, status } = req.query;
+    const pagination = getPaginationParams(req.query, 9);
     const filter = {};
     const normalizedSearch = search?.trim();
 
@@ -76,7 +81,14 @@ const getAll = async (req, res) => {
     }
 
     const cars = await Car.find(filter).sort({ createdAt: -1 });
-    res.json(cars.map(serializeCar));
+    const serializedCars = cars.map(serializeCar);
+
+    if (!pagination) {
+      return res.json(serializedCars);
+    }
+
+    const paginated = buildPagination(serializedCars, pagination.page, pagination.limit);
+    res.json(paginated);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

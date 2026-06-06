@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import Loader from "../Loader/Loader";
+import Pagination from "../Pagination/Pagination";
 import { ordersApi } from "../../api/orders";
 import { useToast } from "../Toast/ToastProvider";
 import styles from "./OrderHistory.module.css";
@@ -18,7 +19,15 @@ function StatusBadge({ status }) {
 export default function OrderHistory({ showIntro = true }) {
   const { showToast } = useToast();
   const [orders, setOrders] = useState([]);
+  const [pagination, setPagination] = useState({
+    page: 1,
+    limit: 5,
+    totalItems: 0,
+    totalPages: 0,
+  });
   const [loading, setLoading] = useState(true);
+  const [currentPage, setCurrentPage] = useState(1);
+  const pageSize = 5;
 
   useEffect(() => {
     let active = true;
@@ -26,10 +35,22 @@ export default function OrderHistory({ showIntro = true }) {
     const loadOrders = async () => {
       try {
         setLoading(true);
-        const response = await ordersApi.listMine();
+        const response = await ordersApi.listMine({ page: currentPage, limit: pageSize });
 
         if (active) {
-          setOrders(response);
+          const nextOrders = Array.isArray(response) ? response : response.items || [];
+          setOrders(nextOrders);
+          if (response && typeof response === "object" && "pagination" in response) {
+            setPagination(response.pagination);
+            setCurrentPage(response.pagination.page || currentPage);
+          } else {
+            setPagination({
+              page: currentPage,
+              limit: pageSize,
+              totalItems: nextOrders.length,
+              totalPages: nextOrders.length ? 1 : 0,
+            });
+          }
         }
       } catch (fetchError) {
         if (active) {
@@ -38,6 +59,12 @@ export default function OrderHistory({ showIntro = true }) {
             message: fetchError.message || "Failed to load orders",
           });
           setOrders([]);
+          setPagination({
+            page: 1,
+            limit: pageSize,
+            totalItems: 0,
+            totalPages: 0,
+          });
         }
       } finally {
         if (active) {
@@ -51,7 +78,11 @@ export default function OrderHistory({ showIntro = true }) {
     return () => {
       active = false;
     };
-  }, [showToast]);
+  }, [currentPage, pageSize, showToast]);
+
+  const handlePageChange = (page) => {
+    setCurrentPage(Math.max(page, 1));
+  };
 
   return (
     <section className={styles.history}>
@@ -67,7 +98,7 @@ export default function OrderHistory({ showIntro = true }) {
 
           <div className={styles.summaryCard}>
             <span className={styles.summaryLabel}>Total orders</span>
-            <strong className={styles.summaryValue}>{orders.length}</strong>
+            <strong className={styles.summaryValue}>{pagination.totalItems}</strong>
           </div>
         </div>
       ) : null}
@@ -116,6 +147,17 @@ export default function OrderHistory({ showIntro = true }) {
             );
           })}
       </div>
+
+      {!loading ? (
+        <Pagination
+          currentPage={pagination.page}
+          totalPages={pagination.totalPages}
+          totalItems={pagination.totalItems}
+          onPageChange={handlePageChange}
+          itemLabel="orders"
+          itemLabelSingular="order"
+        />
+      ) : null}
 
       {!loading && orders.length === 0 ? (
         <div className="py-5 text-center text-secondary">No orders found.</div>
