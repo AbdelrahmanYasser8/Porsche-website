@@ -60,7 +60,7 @@
   justify-content: center;
   width: 40px;
   height: 40px;
-  padding: 0 !important;
+  padding-left: 7px !important;
   border-radius: 999px;
   line-height: 1;
   transform: translateY(3px);
@@ -72,13 +72,156 @@
   line-height: 1;
 }
 
+.currencyDropdown {
+  display: inline-flex;
+  margin-right: 12px;
+  margin-top: 2px;
+}
+
+.currencyField {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 40px;
+  padding: 0 12px 0 10px;
+  width: fit-content;
+  border: 1px solid var(--border-color);
+  border-radius: 999px;
+  background: var(--bg-secondary);
+  box-shadow: var(--shadow-sm);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+}
+
+.currencyField:hover,
+.currencyField:focus-within {
+  border-color: var(--text-primary);
+  box-shadow: var(--shadow-md);
+}
+
+.transparentNavbar .currencyField {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.18);
+  backdrop-filter: blur(12px);
+}
+
+.transparentNavbar .currencyField:hover,
+.transparentNavbar .currencyField:focus-within {
+  border-color: rgba(255, 255, 255, 0.45);
+}
+
+.currencyBadge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+  height: 26px;
+  padding: 0 10px;
+  border-radius: 999px;
+  background: var(--hover-bg);
+  color: var(--text-primary);
+  font-size: 0.76rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+  flex: 0 0 auto;
+}
+
+.transparentNavbar .currencyBadge {
+  background: rgba(255, 255, 255, 0.14);
+  color: #ffffff;
+}
+
+.currencyArrow {
+  position: static;
+  pointer-events: none;
+  font-size: 0.76rem;
+  color: var(--text-muted);
+}
+
+.transparentNavbar .currencyArrow {
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.currencySelect {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  width: 100%;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: transparent;
+  -webkit-text-fill-color: transparent;
+  text-shadow: none;
+  font-size: 0.78rem;
+  font-weight: 600;
+  padding: 0;
+  cursor: pointer;
+  line-height: 1.4;
+  transition: color 0.2s ease;
+}
+
+.currencySelect:hover,
+.currencySelect:focus {
+  outline: none;
+}
+
+.currencySelect option {
+  background-color: #ffffff;
+  color: #111111;
+}
+
+[data-theme="dark"] .currencySelect {
+  background-color: transparent;
+  color-scheme: dark;
+}
+
+[data-theme="dark"] .currencySelect option {
+  background-color: #1a1a1a;
+  color: #e0e0e0;
+}
+
+.transparentNavbar .currencySelect {
+  background-color: transparent !important;
+  color: transparent;
+  -webkit-text-fill-color: transparent;
+}
+
+.transparentNavbar .mobileCurrencySelect {
+  background-color: transparent !important;
+  color: transparent !important;
+  -webkit-text-fill-color: transparent;
+}
+
+.themeToggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  padding: 0 !important;
+  border: none;
+  border-radius: 999px;
+  line-height: 1;
+  background: transparent;
+  cursor: pointer;
+  transition: background-color 0.2s ease, color 0.2s ease;
+  margin-right: 4px;
+  transform: translateY(3px);
+}
+
 .dropdownMenu {
   min-width: 176px;
   margin-top: 8px !important;
   padding: 8px !important;
   border-radius: 4px !important;
-  border-color: #e5e5e5 !important;
-  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.12);
+  border-color: var(--border-color) !important;
+  box-shadow: var(--shadow-md);
+  background-color: var(--bg-dropdown);
 }
 
 .dropdownItem {
@@ -89,12 +232,17 @@
   padding: 10px 12px !important;
   font-size: 0.92rem;
   line-height: 1.2;
+  color: var(--text-primary) !important;
+}
+
+.dropdownItem:hover {
+  background-color: var(--hover-bg) !important;
 }
 
 .dropdownItem i {
   width: 18px;
   text-align: center;
-  color: #686868;
+  color: var(--text-secondary);
 }
 
 .mobileAccountLinks {
@@ -136,11 +284,11 @@
 }
 
 .defaultToggle {
-  background-color: #f4f4f4 !important;
+  background-color: var(--hover-bg) !important;
 }
 
 .defaultToggle span {
-  background-color: #1a1a1a;
+  background-color: var(--text-primary);
 }
 
 .transparentToggle {
@@ -152,14 +300,14 @@
   background-color: #ffffff;
 }
 
-/* Default / Solid White Navbar (for other pages) */
+/* Default / Solid Navbar (for other pages) */
 .defaultNavbar {
-  background-color: #ffffff !important;
-  border-bottom: 1px solid #e5e5e5 !important;
+  background-color: var(--bg-nav) !important;
+  border-bottom: 1px solid var(--border-color) !important;
 }
 
 .defaultLink {
-  color: #1a1a1a !important;
+  color: var(--text-primary) !important;
   font-weight: 500;
   transition: opacity 0.2s ease;
 }
@@ -169,7 +317,7 @@
 }
 
 .defaultBrand {
-  color: #1a1a1a !important;
+  color: var(--text-primary) !important;
   font-weight: 700;
   letter-spacing: 2px;
   text-transform: uppercase;
@@ -182,16 +330,18 @@
 }
 
 .defaultIcon {
-  color: #1a1a1a !important;
-  transition: opacity 0.2s ease;
+  color: var(--text-primary) !important;
+  transition: color 0.2s ease;
 }
 
-.defaultNavbar .accountToggle:hover {
+.defaultNavbar .accountToggle:hover,
+.defaultNavbar .themeToggle:hover {
   background-color: #f3f3f3;
 }
 
-.defaultIcon:hover {
-  opacity: 0.6;
+[data-theme="dark"] .defaultNavbar .accountToggle:hover,
+[data-theme="dark"] .defaultNavbar .themeToggle:hover {
+  background-color: rgba(255, 255, 255, 0.06);
 }
 
 /* Transparent Navbar (for the Home page) */
@@ -230,15 +380,12 @@
 
 .transparentIcon {
   color: #ffffff !important;
-  transition: opacity 0.2s ease;
+  transition: color 0.2s ease;
 }
 
-.transparentNavbar .accountToggle:hover {
+.transparentNavbar .accountToggle:hover,
+.transparentNavbar .themeToggle:hover {
   background-color: rgba(255, 255, 255, 0.12);
-}
-
-.transparentIcon:hover {
-  opacity: 0.7;
 }
 
 @media (max-width: 767.98px) {
@@ -267,9 +414,9 @@
   }
 
   .defaultMenu {
-    background-color: #ffffff;
-    border: 1px solid #e5e5e5;
-    box-shadow: 0 18px 45px rgba(0, 0, 0, 0.12);
+    background-color: var(--bg-elevated);
+    border: 1px solid var(--border-color);
+    box-shadow: var(--shadow-lg);
   }
 
   .transparentMenu {
@@ -303,11 +450,41 @@
   .navLink {
     width: 100%;
     padding: 12px 2px !important;
-    border-bottom: 1px solid rgba(127, 127, 127, 0.18);
+    border-bottom: 1px solid var(--border-light);
     font-size: 0.98rem !important;
   }
 
+  .currencyDropdown {
+    display: none;
+  }
+
   .accountDropdown {
+    display: none;
+  }
+
+  .mobileCurrencyWrapper {
+    display: flex;
+    width: 100%;
+    margin-bottom: 2px;
+  }
+
+  .mobileCurrencySelect {
+    font-size: 0.98rem !important;
+    font-weight: 600;
+  }
+
+  .mobileCurrencyArrow {
+    pointer-events: none;
+    font-size: 0.76rem;
+    color: var(--text-muted);
+  }
+
+  [data-theme="dark"] .mobileCurrencySelect option {
+    background-color: #1a1a1a;
+    color: #e0e0e0;
+  }
+
+  .accountArea > .themeToggle {
     display: none;
   }
 
@@ -319,10 +496,19 @@
     display: flex !important;
     align-items: center;
     gap: 10px;
+    color: var(--text-primary) !important;
   }
 
   .mobileAccountLink i {
     width: 18px;
     text-align: center;
+  }
+
+  .transparentNavbar .mobileAccountLink {
+    color: #ffffff !important;
+  }
+
+  .transparentNavbar .mobileAccountLink i {
+    color: #ffffff;
   }
 }

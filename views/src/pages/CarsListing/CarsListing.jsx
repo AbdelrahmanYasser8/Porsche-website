@@ -1,75 +1,96 @@
-import React, { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
-import "bootstrap/dist/css/bootstrap.min.css";
 import Navbar from "../../components/Navbar/Navbar";
 import Footer from "../../components/Footer/Footer";
 import CarCard from "../../components/CarCard/CarCard";
+import Loader from "../../components/Loader/Loader";
+import Pagination from "../../components/Pagination/Pagination";
+import { useToast } from "../../components/Toast/ToastProvider";
 import { carsApi } from "../../api/cars";
-import { getCarFallbackImage } from "../../utils/carAssets";
+import { useCurrency } from "../../context/CurrencyContext";
 import styles from "./CarsListing.module.css";
 
 const CATEGORIES = ["All", "SUV", "Sports", "Electric", "Sedan"];
 const YEARS = ["All", "2024", "2025", "2026"];
+const PRICE_MAX = 1000000;
 
-const normalizeText = (value) => String(value || "").trim().toLowerCase();
+const CATEGORY_BY_SLUG = Object.fromEntries(
+  CATEGORIES.map((category) => [category.toLowerCase(), category]),
+);
 
-const getCategoryFromPath = (pathname) => {
-  const path = pathname.replace("/", "").toLowerCase();
-
-  switch (path) {
-    case "shop/suv":
-      return "SUV";
-    case "shop/sports":
-      return "Sports";
-    case "shop/electric":
-      return "Electric";
-    case "shop/sedan":
-      return "Sedan";
-    case "shop":
-      return "All";
-    default:
-      return "All";
-  }
-};
+function getCategoryFromPath(pathname) {
+  const slug = pathname.split("/")[2]?.toLowerCase();
+  return CATEGORY_BY_SLUG[slug] || "All";
+}
 
 export default function CarListing() {
   const location = useLocation();
+  const { formatPrice, activeCurrency } = useCurrency();
+  const { showToast } = useToast();
   const [cars, setCars] = useState([]);
+  const [pagination, setPagination] = useState({
+    page: 1,
+    limit: 9,
+    totalItems: 0,
+    totalPages: 0,
+  });
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState("All");
-  const [priceRange, setPriceRange] = useState(1000000);
-  const [priceMax, setPriceMax] = useState(1000000);
+  const [priceRange, setPriceRange] = useState(PRICE_MAX);
   const [year, setYear] = useState("All");
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const pageSize = 9;
 
   useEffect(() => {
     const categoryFromUrl = getCategoryFromPath(location.pathname);
     setCategory(categoryFromUrl);
+    setCurrentPage(1);
   }, [location.pathname]);
 
   useEffect(() => {
     let active = true;
-    const categoryQuery = categoryFromUrl => categoryFromUrl && categoryFromUrl !== "All" ? { category: categoryFromUrl } : {};
 
     const loadCars = async () => {
       try {
         setLoading(true);
-        setError("");
-        const response = await carsApi.list(categoryQuery(getCategoryFromPath(location.pathname)));
+        const query = {
+          search: search.trim() || undefined,
+          category: category !== "All" ? category : undefined,
+          year: year !== "All" ? year : undefined,
+          maxPrice: priceRange,
+          page: currentPage,
+          limit: pageSize,
+        };
+        const response = await carsApi.list(query);
         if (active) {
-          setCars(response);
-          const nextPriceMax = Math.max(
-            ...response.map((car) => Number(car.price) || 0),
-            1000000,
-          );
-          setPriceMax(nextPriceMax);
-          setPriceRange(nextPriceMax);
+          const nextCars = Array.isArray(response) ? response : response.items || [];
+          setCars(nextCars);
+          if (response && typeof response === "object" && "pagination" in response) {
+            setPagination(response.pagination);
+            setCurrentPage(response.pagination.page || currentPage);
+          } else {
+            setPagination({
+              page: currentPage,
+              limit: pageSize,
+              totalItems: nextCars.length,
+              totalPages: nextCars.length ? 1 : 0,
+            });
+          }
         }
       } catch (fetchError) {
         if (active) {
-          setError(fetchError.message || "Failed to load cars");
+          showToast({
+            variant: "danger",
+            message: fetchError.message || "Failed to load cars",
+          });
           setCars([]);
+          setPagination({
+            page: 1,
+            limit: pageSize,
+            totalItems: 0,
+            totalPages: 0,
+          });
         }
       } finally {
         if (active) {
@@ -83,33 +104,18 @@ export default function CarListing() {
     return () => {
       active = false;
     };
-  }, [location.pathname]);
+  }, [category, currentPage, pageSize, priceRange, search, showToast, year]);
 
-  const filtered = useMemo(() => {
-    const normalizedSearch = search.trim().toLowerCase();
-
-    return cars.filter((car) => {
-      const carYear = String(car.year ?? car.manufactureYear ?? "");
-      const matchesSearch =
-        !normalizedSearch ||
-        [car.name, car.make, car.category, carYear, String(car.price), car.status]
-          .join(" ")
-          .toLowerCase()
-          .includes(normalizedSearch);
-      const matchesCategory =
-        category === "All" || normalizeText(car.category) === normalizeText(category);
-      const matchesPrice = Number(car.price) <= priceRange;
-      const matchesYear = year === "All" || carYear === year;
-
-      return matchesSearch && matchesCategory && matchesPrice && matchesYear;
-    });
-  }, [cars, category, priceRange, search, year]);
+  const handlePageChange = (page) => {
+    setCurrentPage(Math.max(page, 1));
+  };
 
   const handleReset = () => {
     setCategory("All");
-    setPriceRange(priceMax);
+    setPriceRange(PRICE_MAX);
     setYear("All");
     setSearch("");
+    setCurrentPage(1);
   };
 
   return (
@@ -119,12 +125,6 @@ export default function CarListing() {
         <h1 className={`${styles.pageTitle} mb-3`}>Browse our collection</h1>
         <p className="text-secondary fs-6 mb-4">Explore our extensive selection of premium vehicles</p>
 
-        {error ? (
-          <div className="alert alert-danger" role="alert">
-            {error}
-          </div>
-        ) : null}
-
         <div className={`input-group mb-5 ps-2 d-flex align-items-center ${styles.searchWrapper}`} style={{ maxWidth: 600, height: 50 }}>
           <i className="fa-solid fa-magnifying-glass fs-5 ps-1 border-0"></i>
           <input
@@ -132,7 +132,10 @@ export default function CarListing() {
             className={`form-control pb-2 ${styles.searchInput}`}
             placeholder="Search"
             value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            onChange={(e) => {
+              setSearch(e.target.value);
+              setCurrentPage(1);
+            }}
           />
         </div>
 
@@ -150,12 +153,15 @@ export default function CarListing() {
                     name="category"
                     id={`cat-${cat}`}
                     checked={category === cat}
-                    onChange={() => setCategory(cat)}
+                    onChange={() => {
+                      setCategory(cat);
+                      setCurrentPage(1);
+                    }}
                   />
                   <label
                     className="form-check-label"
                     htmlFor={`cat-${cat}`}
-                    style={{ fontSize: "0.9rem", color: "#333", cursor: "pointer" }}
+                    style={{ fontSize: "0.9rem", color: "#666", cursor: "pointer" }}
                   >
                     {cat}
                   </label>
@@ -167,14 +173,17 @@ export default function CarListing() {
                 type="range"
                 className={`form-range ${styles.formRange}`}
                 min={0}
-                max={priceMax}
+                max={PRICE_MAX}
                 step={5000}
                 value={priceRange}
-                onChange={(e) => setPriceRange(Number(e.target.value))}
+                onChange={(e) => {
+                  setPriceRange(Number(e.target.value));
+                  setCurrentPage(1);
+                }}
               />
               <div className="d-flex justify-content-between" style={{ fontSize: "0.82rem", color: "#888" }}>
-                <span>$0</span>
-                <span>${priceRange.toLocaleString()}</span>
+                <span>{activeCurrency.symbol}0</span>
+                <span>{formatPrice(priceRange)}</span>
               </div>
 
               <div className={`${styles.filterLabel} mb-2 mt-3`}>Year</div>
@@ -182,7 +191,10 @@ export default function CarListing() {
                 className="form-select mb-2"
                 style={{ fontSize: "0.9rem" }}
                 value={year}
-                onChange={(e) => setYear(e.target.value)}
+                onChange={(e) => {
+                  setYear(e.target.value);
+                  setCurrentPage(1);
+                }}
               >
                 {YEARS.map((y) => (
                   <option key={y} value={y}>
@@ -193,7 +205,10 @@ export default function CarListing() {
 
               <button
                 className={`btn btn-outline-secondary w-100 mt-3 ${styles.resetBtn}`}
-                onClick={handleReset}
+                onClick={() => {
+                  handleReset();
+                  setCurrentPage(1);
+                }}
               >
                 Reset Filters
               </button>
@@ -201,31 +216,41 @@ export default function CarListing() {
           </div>
 
           <div className="col-12 col-md-9">
-            <div className="row row-cols-1 row-cols-sm-2 row-cols-lg-3 g-3">
-              {loading && (
-                <div className="col-12 text-center py-5 text-secondary">
-                  Loading vehicles...
-                </div>
-              )}
-              {!loading && filtered.length === 0 && (
-                <div className="col-12 text-center py-5 text-secondary">
-                  No vehicles match your filters.
-                </div>
-              )}
-              {filtered.map((car) => (
-                <CarCard
-                  key={car.id}
-                  id={car.id}
-                  name={car.name}
-                  year={car.year ?? car.manufactureYear}
-                  fuel={car.fuelType}
-                  seats={car.seating}
-                  price={car.price}
-                  image={getCarFallbackImage(car)}
-                  status={car.status}
-                />
-              ))}
-            </div>
+            {loading ? (
+              <Loader label="Loading vehicles..." />
+            ) : (
+              <div className="row row-cols-1 row-cols-sm-2 row-cols-lg-3 g-3">
+                {cars.length === 0 ? (
+                  <div className="col-12 text-center py-5 text-secondary">
+                    No vehicles match your filters.
+                  </div>
+                ) : (
+                  cars.map((car) => (
+                    <CarCard
+                      key={car.id}
+                      id={car.id}
+                      name={car.name}
+                      year={car.year ?? car.manufactureYear}
+                      fuel={car.fuelType}
+                      seats={car.seating}
+                      price={car.price}
+                      image={car.image}
+                      status={car.status}
+                    />
+                  ))
+                )}
+              </div>
+            )}
+            {!loading ? (
+              <Pagination
+                currentPage={pagination.page}
+                totalPages={pagination.totalPages}
+                totalItems={pagination.totalItems}
+                onPageChange={handlePageChange}
+                itemLabel="vehicles"
+                itemLabelSingular="vehicle"
+              />
+            ) : null}
           </div>
         </div>
       </div>

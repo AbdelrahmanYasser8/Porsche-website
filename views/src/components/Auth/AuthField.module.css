@@ -4,7 +4,7 @@
 }
 
 .label {
-  color: #1b1b1b;
+  color: var(--text-primary);
   font-size: 0.95rem;
   font-weight: 600;
   line-height: 1.2;
@@ -14,20 +14,20 @@
   display: flex;
   align-items: stretch;
   overflow: hidden;
-  border: 1px solid #dfe2e5;
+  border: 1px solid var(--border-color);
   border-radius: 8px;
-  background-color: #f8f9fa;
+  background-color: var(--bg-secondary);
   transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
 }
 
 .inputGroup:focus-within {
-  border-color: #bdbdbd;
-  box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.04);
+  border-color: var(--text-muted);
+  box-shadow: 0 0 0 3px var(--hover-overlay);
 }
 
 .inputGroupError {
   border-color: #c26a6a;
-  background-color: #fff9f9;
+  background-color: rgba(194, 106, 106, 0.06);
 }
 
 .iconWrap {
@@ -35,7 +35,7 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  color: #5d5d5d;
+  color: var(--text-muted);
   flex: 0 0 auto;
 }
 
@@ -44,14 +44,14 @@
   min-width: 0;
   border: 0;
   background: transparent;
-  color: #232323;
+  color: var(--text-primary);
   font-size: 0.95rem;
   padding: 0.9rem 1rem 0.9rem 0;
   box-shadow: none;
 }
 
 .input::placeholder {
-  color: #9b9b9b;
+  color: var(--text-muted);
 }
 
 .input:focus {
@@ -63,7 +63,7 @@
   width: 46px;
   border: 0;
   background: transparent;
-  color: #666666;
+  color: var(--text-muted);
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -71,18 +71,18 @@
 }
 
 .toggleButton:hover {
-  color: #111111;
-  background-color: rgba(0, 0, 0, 0.03);
+  color: var(--text-primary);
+  background-color: var(--hover-overlay);
 }
 
 .toggleButton:focus-visible {
-  outline: 2px solid rgba(0, 0, 0, 0.22);
+  outline: 2px solid var(--text-muted);
   outline-offset: -2px;
 }
 
 .helperText {
   margin: 0;
-  color: #7d7d7d;
+  color: var(--text-muted);
   font-size: 0.82rem;
   line-height: 1.45;
 }

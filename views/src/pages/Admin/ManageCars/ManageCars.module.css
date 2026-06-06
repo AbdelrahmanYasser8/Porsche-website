@@ -1,8 +1,8 @@
 .page {
   min-height: 100vh;
   padding: 28px 0 56px;
-  background: #f4f4f2;
-  color: #111111;
+  background: var(--bg-primary);
+  color: var(--text-primary);
   font-family: 'Helvetica Neue', Arial, sans-serif;
 }
 
@@ -32,19 +32,19 @@
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  color: #8a6f16;
+  color: var(--accent-gold);
   font-size: 0.9rem;
   font-weight: 700;
   text-decoration: none;
 }
 
 .backLink:hover {
-  color: #111111;
+  color: var(--text-primary);
 }
 
 .header h1 {
   margin: 0;
-  color: #111111;
+  color: var(--text-primary);
   font-size: clamp(1.75rem, 2.4vw, 2.25rem);
   font-weight: 800;
   line-height: 1.1;
@@ -61,19 +61,19 @@
   width: min(430px, 100%);
   min-height: 50px;
   padding: 0 14px;
-  border: 1px solid #cfd4dc;
+  border: 1px solid var(--border-color);
   border-radius: 8px;
-  background: #ffffff;
+  background: var(--bg-secondary);
   display: flex;
   align-items: center;
   gap: 10px;
-  color: #8a94a6;
+  color: var(--text-muted);
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
 .searchBox:focus-within {
-  border-color: #111111;
-  box-shadow: 0 0 0 3px rgba(17, 17, 17, 0.08);
+  border-color: var(--text-primary);
+  box-shadow: 0 0 0 3px var(--hover-overlay);
 }
 
 .searchBox input {
@@ -81,7 +81,7 @@
   border: 0;
   outline: 0;
   background: transparent;
-  color: #111111;
+  color: var(--text-primary);
   font-size: 0.92rem;
 }
 
@@ -90,8 +90,8 @@
   padding: 0 18px;
   border: 0;
   border-radius: 8px;
-  background: #111111;
-  color: #ffffff;
+  background: var(--text-primary);
+  color: var(--bg-primary);
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -102,9 +102,9 @@
 }
 
 .primaryButton:hover {
-  background: #000000;
+  opacity: 0.9;
   transform: translateY(-1px);
-  box-shadow: 0 10px 22px rgba(0, 0, 0, 0.16);
+  box-shadow: var(--shadow-md);
 }
 
 .summaryGrid {
@@ -115,10 +115,10 @@
 
 .summaryCard,
 .tablePanel {
-  border: 1px solid #e4e4e4;
+  border: 1px solid var(--border-color);
   border-radius: 10px;
-  background: #ffffff;
-  box-shadow: 0 8px 26px rgba(0, 0, 0, 0.05);
+  background: var(--bg-card);
+  box-shadow: var(--shadow-sm);
 }
 
 .summaryCard {
@@ -128,13 +128,13 @@
 }
 
 .summaryCard span {
-  color: #555555;
+  color: var(--text-muted);
   font-size: 0.82rem;
   font-weight: 700;
 }
 
 .summaryCard strong {
-  color: #111111;
+  color: var(--text-primary);
   font-size: 1.45rem;
   line-height: 1;
 }
@@ -145,7 +145,7 @@
 
 .emptyState {
   padding: 24px;
-  color: #666666;
+  color: var(--text-muted);
   font-weight: 700;
   text-align: center;
 }
@@ -163,14 +163,14 @@
 .dataTable th,
 .dataTable td {
   padding: 16px 22px;
-  border-bottom: 1px solid #e4e4e4;
+  border-bottom: 1px solid var(--border-color);
   text-align: left;
   vertical-align: middle;
 }
 
 .dataTable th {
-  color: #333333;
-  background: #fbfbfb;
+  color: var(--text-secondary);
+  background: var(--bg-secondary);
   font-size: 0.72rem;
   font-weight: 900;
   letter-spacing: 0.08em;
@@ -178,7 +178,7 @@
 }
 
 .dataTable td {
-  color: #111111;
+  color: var(--text-primary);
   font-size: 0.9rem;
   font-weight: 600;
 }
@@ -192,17 +192,17 @@
   height: 58px;
   border-radius: 8px;
   object-fit: cover;
-  background: #e8e8e8;
+  background: var(--bg-secondary);
 }
 
 .primaryText {
-  color: #111111;
+  color: var(--text-primary);
   font-weight: 800;
 }
 
 .secondaryText {
   margin-top: 4px;
-  color: #6f6f6f;
+  color: var(--text-muted);
   font-size: 0.78rem;
   font-weight: 600;
 }
@@ -244,7 +244,7 @@
   border: 0;
   border-radius: 6px;
   background: transparent;
-  color: #8a6f16;
+  color: var(--accent-gold);
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -252,7 +252,7 @@
 }
 
 .iconButton:hover {
-  background: #f5f1e6;
+  background: var(--hover-bg);
   transform: translateY(-1px);
 }
 
@@ -269,7 +269,7 @@
   inset: 0;
   z-index: 2000;
   padding: 28px;
-  background: rgba(17, 17, 17, 0.52);
+  background: rgba(0, 0, 0, 0.52);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -280,8 +280,8 @@
   width: min(760px, 100%);
   max-height: min(92vh, 920px);
   border-radius: 12px;
-  background: #ffffff;
-  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.28);
+  background: var(--bg-elevated);
+  box-shadow: var(--shadow-lg);
   overflow: hidden;
   display: flex;
   flex-direction: column;
@@ -290,7 +290,7 @@
 .dialogHeader {
   min-height: 74px;
   padding: 0 24px;
-  border-bottom: 1px solid #e4e4e4;
+  border-bottom: 1px solid var(--border-color);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -299,7 +299,7 @@
 
 .dialogHeader h2 {
   margin: 0;
-  color: #111111;
+  color: var(--text-primary);
   font-size: clamp(1.35rem, 2vw, 1.75rem);
   font-weight: 800;
 }
@@ -310,7 +310,7 @@
   border: 0;
   border-radius: 8px;
   background: transparent;
-  color: #8a94a6;
+  color: var(--text-muted);
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -319,8 +319,8 @@
 }
 
 .closeButton:hover {
-  background: #f4f4f2;
-  color: #111111;
+  background: var(--hover-bg);
+  color: var(--text-primary);
 }
 
 .carForm {
@@ -344,7 +344,7 @@
 .field span,
 .fieldset legend,
 .stockCheck span {
-  color: #1f2937;
+  color: var(--text-primary);
   font-size: 0.95rem;
   font-weight: 800;
 }
@@ -353,10 +353,10 @@
 .field select,
 .field textarea {
   width: 100%;
-  border: 1px solid #cfd4dc;
+  border: 1px solid var(--border-color);
   border-radius: 10px;
-  background: #ffffff;
-  color: #111111;
+  background: var(--bg-secondary);
+  color: var(--text-primary);
   font: inherit;
   font-size: 0.95rem;
   outline: 0;
@@ -379,13 +379,13 @@
 .field input:focus,
 .field select:focus,
 .field textarea:focus {
-  border-color: #111111;
-  box-shadow: 0 0 0 3px rgba(17, 17, 17, 0.08);
+  border-color: var(--text-primary);
+  box-shadow: 0 0 0 3px var(--hover-overlay);
 }
 
 .field .fieldError {
   border-color: #c26a6a;
-  background: #fff9f9;
+  background: rgba(194, 106, 106, 0.08);
 }
 
 .field .fieldError:focus {
@@ -406,7 +406,7 @@
 .fieldset {
   margin: 0;
   padding: 16px;
-  border: 1px solid #e4e4e4;
+  border: 1px solid var(--border-color);
   border-radius: 10px;
   display: grid;
   gap: 14px;
@@ -414,7 +414,7 @@
 
 .fieldsetError {
   border-color: #c26a6a;
-  background: #fff9f9;
+  background: rgba(194, 106, 106, 0.08);
 }
 
 .fieldset legend {
@@ -440,10 +440,10 @@
 .checkItem {
   min-height: 42px;
   padding: 0 12px;
-  border: 1px solid #e4e4e4;
+  border: 1px solid var(--border-color);
   border-radius: 8px;
-  background: #fbfbfb;
-  color: #111111;
+  background: var(--bg-secondary);
+  color: var(--text-primary);
   font-size: 0.9rem;
   font-weight: 700;
 }
@@ -452,11 +452,11 @@
 .stockCheck input {
   width: 16px;
   height: 16px;
-  accent-color: #111111;
+  accent-color: var(--text-primary);
 }
 
 .fileHint {
-  color: #6f6f6f;
+  color: var(--text-muted);
   font-size: 0.82rem;
   font-weight: 700;
 }
@@ -465,9 +465,9 @@
   width: fit-content;
   max-width: 100%;
   padding: 10px;
-  border: 1px solid #e4e4e4;
+  border: 1px solid var(--border-color);
   border-radius: 10px;
-  background: #fbfbfb;
+  background: var(--bg-secondary);
   display: flex;
   align-items: center;
   gap: 12px;
@@ -478,11 +478,11 @@
   height: 54px;
   border-radius: 8px;
   object-fit: cover;
-  background: #e8e8e8;
+  background: var(--bg-secondary);
 }
 
 .thumbnailPreview span {
-  color: #6f6f6f;
+  color: var(--text-muted);
   font-size: 0.82rem;
   font-weight: 700;
   word-break: break-word;
@@ -522,25 +522,25 @@
 }
 
 .saveButton {
-  border: 1px solid #111111;
-  background: #111111;
-  color: #ffffff;
+  border: 1px solid var(--text-primary);
+  background: var(--text-primary);
+  color: var(--bg-primary);
 }
 
 .saveButton:hover {
-  background: #000000;
+  opacity: 0.9;
   transform: translateY(-1px);
-  box-shadow: 0 10px 22px rgba(0, 0, 0, 0.16);
+  box-shadow: var(--shadow-md);
 }
 
 .cancelButton {
-  border: 1px solid #cfd4dc;
-  background: #ffffff;
-  color: #111111;
+  border: 1px solid var(--border-color);
+  background: var(--bg-secondary);
+  color: var(--text-primary);
 }
 
 .cancelButton:hover {
-  border-color: #111111;
+  border-color: var(--text-primary);
   transform: translateY(-1px);
 }
 

@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import AuthField from "../../components/Auth/AuthField";
 import AuthShell from "../../components/Auth/AuthShell";
+import Loader from "../../components/Loader/Loader";
 import authStyles from "../../components/Auth/AuthShell.module.css";
 import { validateLogin } from "../../components/Auth/authValidation";
 import { useToast } from "../../components/Toast/ToastProvider";
@@ -131,7 +132,7 @@ export default function Login() {
         </div>
 
         <button type="submit" className={authStyles.submitButton} disabled={isSubmitting}>
-          {isSubmitting ? "Signing In..." : "Sign In"}
+          {isSubmitting ? <Loader label="Signing in..." variant="compact" /> : "Sign In"}
         </button>
 
         <p className={authStyles.footerText}>

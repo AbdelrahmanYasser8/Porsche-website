@@ -1,5 +1,8 @@
 import { useEffect, useState } from "react";
+import Loader from "../Loader/Loader";
+import Pagination from "../Pagination/Pagination";
 import { ordersApi } from "../../api/orders";
+import { useToast } from "../Toast/ToastProvider";
 import styles from "./OrderHistory.module.css";
 
 function StatusBadge({ status }) {
@@ -14,12 +17,17 @@ function StatusBadge({ status }) {
 }
 
 export default function OrderHistory({ showIntro = true }) {
+  const { showToast } = useToast();
   const [orders, setOrders] = useState([]);
-  const [currentPage, setCurrentPage] = useState(1);
+  const [pagination, setPagination] = useState({
+    page: 1,
+    limit: 5,
+    totalItems: 0,
+    totalPages: 0,
+  });
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
-
-  const ORDERS_PER_PAGE = 3;
+  const [currentPage, setCurrentPage] = useState(1);
+  const pageSize = 5;
 
   useEffect(() => {
     let active = true;
@@ -27,17 +35,36 @@ export default function OrderHistory({ showIntro = true }) {
     const loadOrders = async () => {
       try {
         setLoading(true);
-        setError("");
-        const response = await ordersApi.listMine();
+        const response = await ordersApi.listMine({ page: currentPage, limit: pageSize });
 
         if (active) {
-          setOrders(response);
-          setCurrentPage(1);
+          const nextOrders = Array.isArray(response) ? response : response.items || [];
+          setOrders(nextOrders);
+          if (response && typeof response === "object" && "pagination" in response) {
+            setPagination(response.pagination);
+            setCurrentPage(response.pagination.page || currentPage);
+          } else {
+            setPagination({
+              page: currentPage,
+              limit: pageSize,
+              totalItems: nextOrders.length,
+              totalPages: nextOrders.length ? 1 : 0,
+            });
+          }
         }
       } catch (fetchError) {
         if (active) {
-          setError(fetchError.message || "Failed to load orders");
+          showToast({
+            variant: "danger",
+            message: fetchError.message || "Failed to load orders",
+          });
           setOrders([]);
+          setPagination({
+            page: 1,
+            limit: pageSize,
+            totalItems: 0,
+            totalPages: 0,
+          });
         }
       } finally {
         if (active) {
@@ -51,16 +78,11 @@ export default function OrderHistory({ showIntro = true }) {
     return () => {
       active = false;
     };
-  }, []);
+  }, [currentPage, pageSize, showToast]);
 
-  const TOTAL_PAGES = Math.max(1, Math.ceil(orders.length / ORDERS_PER_PAGE));
-  const safePage = Math.min(currentPage, TOTAL_PAGES);
-  const start = (safePage - 1) * ORDERS_PER_PAGE;
-  const paginatedOrders = orders.slice(start, start + ORDERS_PER_PAGE);
-
-  useEffect(() => {
-    setCurrentPage((page) => Math.min(page, TOTAL_PAGES));
-  }, [TOTAL_PAGES]);
+  const handlePageChange = (page) => {
+    setCurrentPage(Math.max(page, 1));
+  };
 
   return (
     <section className={styles.history}>
@@ -76,24 +98,18 @@ export default function OrderHistory({ showIntro = true }) {
 
           <div className={styles.summaryCard}>
             <span className={styles.summaryLabel}>Total orders</span>
-            <strong className={styles.summaryValue}>{orders.length}</strong>
+            <strong className={styles.summaryValue}>{pagination.totalItems}</strong>
           </div>
-        </div>
-      ) : null}
-
-      {error ? (
-        <div className="alert alert-danger mb-4" role="alert">
-          {error}
         </div>
       ) : null}
 
       <div className={styles.list}>
         {loading ? (
-          <div className="py-5 text-center text-secondary">Loading orders...</div>
+          <Loader label="Loading orders..." />
         ) : null}
 
         {!loading &&
-          paginatedOrders.map((order) => {
+          orders.map((order) => {
             const firstItem = order.items?.[0] || {};
 
             return (
@@ -132,43 +148,20 @@ export default function OrderHistory({ showIntro = true }) {
           })}
       </div>
 
-      {!loading && paginatedOrders.length === 0 && !error ? (
-        <div className="py-5 text-center text-secondary">No orders found.</div>
+      {!loading ? (
+        <Pagination
+          currentPage={pagination.page}
+          totalPages={pagination.totalPages}
+          totalItems={pagination.totalItems}
+          onPageChange={handlePageChange}
+          itemLabel="orders"
+          itemLabelSingular="order"
+        />
       ) : null}
 
-      <div className={styles.pagination} aria-label="Order history pagination">
-        <button
-          type="button"
-          className={styles.paginationArrow}
-          onClick={() => setCurrentPage((page) => Math.max(1, page - 1))}
-          disabled={safePage === 1}
-          aria-label="Previous page"
-        >
-          <i className={`fa-solid fa-angle-left ${styles.arrowIcon}`}></i>
-        </button>
-
-        {Array.from({ length: TOTAL_PAGES }, (_, index) => index + 1).map((page) => (
-          <button
-            key={page}
-            type="button"
-            onClick={() => setCurrentPage(page)}
-            className={`${styles.paginationButton} ${safePage === page ? styles.paginationButtonActive : ""}`}
-            aria-current={safePage === page ? "page" : undefined}
-          >
-            {page}
-          </button>
-        ))}
-
-        <button
-          type="button"
-          className={styles.paginationArrow}
-          onClick={() => setCurrentPage((page) => Math.min(TOTAL_PAGES, page + 1))}
-          disabled={safePage === TOTAL_PAGES}
-          aria-label="Next page"
-        >
-          <i className={`fa-solid fa-angle-right ${styles.arrowIcon}`}></i>
-        </button>
-      </div>
+      {!loading && orders.length === 0 ? (
+        <div className="py-5 text-center text-secondary">No orders found.</div>
+      ) : null}
     </section>
   );
 }

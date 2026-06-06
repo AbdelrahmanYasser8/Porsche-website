@@ -1,11 +1,11 @@
-import { apiRequest } from "./client";
+import { apiRequest, buildApiUrl } from "./client";
 
 export const ordersApi = {
-  listAll() {
-    return apiRequest("/api/orders");
+  listAll(query = {}) {
+    return apiRequest(buildApiUrl("/api/orders", query));
   },
-  listMine() {
-    return apiRequest("/api/orders/mine");
+  listMine(query = {}) {
+    return apiRequest(buildApiUrl("/api/orders/mine", query));
   },
   create(payload) {
     return apiRequest("/api/orders", {

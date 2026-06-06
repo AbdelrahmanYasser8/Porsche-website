@@ -9,14 +9,14 @@
 
 .carName {
   letter-spacing: 1px;
-  color: #111;
+  color: var(--text-primary);
 }
 
 .carImgWrap {
   width: 100%;
   aspect-ratio: 16 / 9;
   overflow: hidden;
-  background: #ffffff;
+  background: transparent;
   position: relative;
 }
 

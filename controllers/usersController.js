@@ -1,6 +1,10 @@
 const User = require("../models/User");
 const Order = require("../models/Order");
 const { serializeUser } = require("../utils/serializers");
+const {
+  buildPagination,
+  getPaginationParams,
+} = require("../utils/pagination");
 
 async function buildUserOrderCounts(userIds) {
   if (!userIds.length) {
@@ -33,7 +37,9 @@ async function buildUserOrderCounts(userIds) {
 async function listUsers(req, res) {
   try {
     const { search, status, role } = req.query;
+    const pagination = getPaginationParams(req.query, 8);
     const filter = {};
+    const normalizedSearch = search?.trim();
 
     if (status && status !== "All") {
       filter.status = status;
@@ -43,17 +49,32 @@ async function listUsers(req, res) {
       filter.role = role;
     }
 
-    if (search) {
+    if (normalizedSearch) {
       filter.$or = [
-        { name: { $regex: search, $options: "i" } },
-        { email: { $regex: search, $options: "i" } },
+        { name: { $regex: normalizedSearch, $options: "i" } },
+        { email: { $regex: normalizedSearch, $options: "i" } },
       ];
     }
 
     const users = await User.find(filter).sort({ createdAt: -1 });
     const orderCounts = await buildUserOrderCounts(users.map((user) => user._id));
+    const serializedUsers = users.map((user) => serializeUser(user, orderCounts.get(user._id.toString()) || 0));
 
-    res.json(users.map((user) => serializeUser(user, orderCounts.get(user._id.toString()) || 0)));
+    if (!pagination) {
+      return res.json(serializedUsers);
+    }
+
+    const summary = {
+      totalUsers: serializedUsers.length,
+      activeUsers: serializedUsers.filter((user) => user.status === "Active").length,
+      inactiveUsers: serializedUsers.filter((user) => user.status !== "Active").length,
+      totalOrders: serializedUsers.reduce((total, user) => total + Number(user.ordersCount || 0), 0),
+    };
+    const paginated = buildPagination(serializedUsers, pagination.page, pagination.limit);
+    res.json({
+      ...paginated,
+      summary,
+    });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -126,7 +147,13 @@ async function deleteUser(req, res) {
       return res.status(404).json({ error: "User not found" });
     }
 
-    await Order.updateMany({ user: user._id }, { $unset: { user: "" } });
+    const processingOrders = await Order.find({ user: user._id, status: "Processing" });
+
+    for (const order of processingOrders) {
+      order.status = "Cancelled";
+      await order.save();
+    }
+
     res.json({ message: "User deleted" });
   } catch (error) {
     res.status(500).json({ error: error.message });

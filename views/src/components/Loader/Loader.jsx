@@ -1,12 +1,17 @@
-import { Html, useProgress } from "@react-three/drei";
+import { Html } from "@react-three/drei";
 import styles from "./Loader.module.css";
 
-export default function Loader() {
+function LoaderContent({ label, variant }) {
   return (
-    <Html center>
-      <div className="bg-secondary vw-100 vh-100 d-flex flex-column justify-content-center align-items-center">
-        <span className={styles.loader}></span>
-      </div>
-    </Html>
+    <span className={`${styles.container} ${styles[variant] || ""}`} role="status">
+      <span className={styles.loader} aria-hidden="true"></span>
+      {label ? <span className={styles.label}>{label}</span> : null}
+    </span>
   );
+}
+
+export default function Loader({ label = "Loading...", variant = "section", canvas = false }) {
+  const content = <LoaderContent label={label} variant={variant} />;
+
+  return canvas ? <Html center>{content}</Html> : content;
 }

@@ -1,12 +1,15 @@
 import styles from "./Navbar.module.css";
-import "bootstrap/dist/css/bootstrap.min.css";
 import "bootstrap/dist/js/bootstrap.bundle.min.js";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
+import { useTheme } from "../../context/ThemeContext";
+import { useCurrency } from "../../context/CurrencyContext";
 
 export default function Navbar({ transparent = false }) {
   const navigate = useNavigate();
   const { user, logout } = useAuth();
+  const { toggleTheme, isDark } = useTheme();
+  const { currency, setCurrency, currencies, activeCurrency } = useCurrency();
 
   const navClass = `${styles.navbarCustom} ${
     transparent ? styles.transparentNavbar : styles.defaultNavbar
@@ -73,6 +76,33 @@ export default function Navbar({ transparent = false }) {
         </div>
 
         <div className={styles.accountArea}>
+          <div className={styles.currencyDropdown}>
+            <div className={styles.currencyField}>
+              <span className={styles.currencyBadge}>{`${activeCurrency.code} ${activeCurrency.symbol}`}</span>
+              <select
+                className={styles.currencySelect}
+                value={currency}
+                onChange={(e) => setCurrency(e.target.value)}
+                aria-label="Select currency"
+              >
+                {currencies.map((c) => (
+                  <option key={c.code} value={c.code}>
+                    {c.label}
+                  </option>
+                ))}
+              </select>
+              <i className={`fa-solid fa-chevron-down ${styles.currencyArrow}`}></i>
+            </div>
+          </div>
+          <button
+            className={`${styles.themeToggle} ${transparent ? styles.transparentIcon : styles.defaultIcon}`}
+            onClick={toggleTheme}
+            aria-label={isDark ? "Switch to light mode" : "Switch to dark mode"}
+            title={isDark ? "Light mode" : "Dark mode"}
+          >
+            <i className={`fa-solid ${isDark ? "fa-sun" : "fa-moon"}`}></i>
+          </button>
+
           <div className={`${styles.accountDropdown} dropdown`}>
             <button
               className={`${styles.accountToggle} nav-link`}
@@ -134,6 +164,33 @@ export default function Navbar({ transparent = false }) {
           </div>
 
           <div className={styles.mobileAccountLinks}>
+            <div className={styles.mobileCurrencyWrapper}>
+              <div className={styles.currencyField}>
+                <span className={styles.currencyBadge}>{`${activeCurrency.code} ${activeCurrency.symbol}`}</span>
+                <select
+                  className={`${styles.currencySelect} ${styles.mobileCurrencySelect}`}
+                  value={currency}
+                  onChange={(e) => setCurrency(e.target.value)}
+                  aria-label="Select currency"
+                >
+                  {currencies.map((c) => (
+                    <option key={c.code} value={c.code}>
+                      {c.label}
+                    </option>
+                  ))}
+                </select>
+                <i className={`fa-solid fa-chevron-down ${styles.mobileCurrencyArrow}`}></i>
+              </div>
+            </div>
+            <button
+              className={`${linkClass} ${styles.mobileAccountLink}`}
+              onClick={toggleTheme}
+              type="button"
+              style={{ background: "none", border: 0, padding: 0, width: "100%", textAlign: "left", display: "flex", alignItems: "center", gap: "10px" }}
+            >
+              <i className={`fa-solid ${isDark ? "fa-sun" : "fa-moon"}`} style={{ width: 18, textAlign: "center" }}></i>
+              {isDark ? "Light Mode" : "Dark Mode"}
+            </button>
             {user ? (
               <>
                 <Link className={`${linkClass} ${styles.mobileAccountLink}`} to="/profile">

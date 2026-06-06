@@ -22,7 +22,7 @@ export function AuthProvider({ children }) {
         if (active) {
           setUser(response.user || null);
         }
-      } catch (error) {
+      } catch {
         if (active) {
           setUser(null);
         }

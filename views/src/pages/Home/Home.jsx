@@ -1,20 +1,17 @@
 import { useEffect, useRef, useState } from "react";
-import { Link } from "react-router-dom"; // Add this import
+import { Link } from "react-router-dom";
 import { AnimatePresence, motion, useInView } from "framer-motion";
 import styles from "./Home.module.css";
 import pv from "../../assets/videos/porsche-911-gt3-rs.mp4";
 import cayenneCoupeImg from "../../assets/images/cayenne-coupe.png";
 import Navbar from "../../components/Navbar/Navbar";
-import Footer from "../../components/Footer/Footer";    
-
+import Footer from "../../components/Footer/Footer";
 import suv from "../../assets/images/suv.avif";
 import sport from "../../assets/images/sport.jpg";
 import electric from "../../assets/images/electric.jpg";
 import sedan from "../../assets/images/sedan.jpeg";
-
 import taycanImg from "../../assets/images/Taycan_TurboS.avif";
 import macanImg from "../../assets/images/Macan_Electric.avif";
-
 import img911Carrera from "../../assets/images/911_Carrera.avif";
 import imgGT3RS from "../../assets/images/GT3_RS.avif";
 import imgCayenneSUV from "../../assets/images/cayenne-side.png";
@@ -80,20 +77,35 @@ export default function Home() {
     3: 0,
   });
   const galleryRef = useRef(null);
-  const wheelLockRef = useRef(false);
-  const wheelTimeoutRef = useRef(null);
+  const slideLockRef = useRef(false);
+  const slideTimeoutRef = useRef(null);
   const isGalleryInView = useInView(galleryRef, { once: true, amount: 0.35 });
 
   useEffect(() => {
     return () => {
-      if (wheelTimeoutRef.current) {
-        clearTimeout(wheelTimeoutRef.current);
+      if (slideTimeoutRef.current) {
+        clearTimeout(slideTimeoutRef.current);
       }
     };
   }, []);
 
+  const lockSlide = () => {
+    slideLockRef.current = true;
+
+    if (slideTimeoutRef.current) {
+      clearTimeout(slideTimeoutRef.current);
+    }
+
+    slideTimeoutRef.current = setTimeout(() => {
+      slideLockRef.current = false;
+    }, 1200);
+  };
+
   const goToSlide = (step, options = {}) => {
+    if (slideLockRef.current) return;
+
     const { wrap = true } = options;
+    lockSlide();
     setSlideDirection(step > 0 ? 1 : -1);
     setCurrentSlide((index) => {
       const nextIndex = wrap
@@ -104,8 +116,8 @@ export default function Home() {
     });
   };
 
-  const prev = () => goToSlide(-1);
-  const next = () => goToSlide(1);
+  const prev = () => goToSlide(-1, { wrap: true });
+  const next = () => goToSlide(1, { wrap: true });
 
   const setSubTab = (slideIndex, tabIndex) => {
     const currentTabIndex = subTabs[slideIndex];
@@ -118,18 +130,6 @@ export default function Home() {
       ...prevTabs,
       [slideIndex]: tabIndex,
     }));
-  };
-
-  const lockWheel = () => {
-    wheelLockRef.current = true;
-
-    if (wheelTimeoutRef.current) {
-      clearTimeout(wheelTimeoutRef.current);
-    }
-
-    wheelTimeoutRef.current = setTimeout(() => {
-      wheelLockRef.current = false;
-    }, 850);
   };
 
   const handleGalleryWheel = (event) => {
@@ -146,12 +146,6 @@ export default function Home() {
     }
 
     event.preventDefault();
-
-    if (wheelLockRef.current) {
-      return;
-    }
-
-    lockWheel();
     goToSlide(direction, { wrap: false });
   };
 

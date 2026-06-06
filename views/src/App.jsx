@@ -1,4 +1,4 @@
-import { Routes, Route } from 'react-router-dom'
+import { Navigate, Route, Routes } from 'react-router-dom'
 import CarListing from "./pages/CarsListing/CarsListing"
 import CarDetails from "./pages/CarDetails/CarDetails"
 import Home from "./pages/Home/Home";
@@ -16,8 +16,6 @@ import ManageOrders from "./pages/Admin/ManageOrders/ManageOrders";
 import CookieConsent from "./components/Cookies/CookieConsent";
 import RequireAuth from "./components/Auth/RequireAuth";
 import { ToastProvider } from "./components/Toast/ToastProvider";
-import { Navigate } from "react-router-dom";
-
 
 function App() {
   return (
@@ -26,16 +24,7 @@ function App() {
         <Route path="/" element={<Home />} />
         <Route path="/about" element={<About />} />
         <Route path="/shop" element={<CarListing />} />
-        <Route path="/shop/suv" element={<CarListing />} />
-        <Route path="/shop/sports" element={<CarListing />} />
-        <Route path="/shop/electric" element={<CarListing />} />
-        <Route path="/shop/sedan" element={<CarListing />} />
-        <Route path="/shop/all" element={<CarListing />} />
-        <Route path="/shop/SUV" element={<CarListing />} />
-        <Route path="/shop/Sports" element={<CarListing />} />
-        <Route path="/shop/Electric" element={<CarListing />} />
-        <Route path="/shop/Sedan" element={<CarListing />} />
-        <Route path="/shop/All" element={<CarListing />} />
+        <Route path="/shop/:category" element={<CarListing />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/privacy-policy" element={<PrivacyPolicy />} />

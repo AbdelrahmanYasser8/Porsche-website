@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import AuthField from "../../components/Auth/AuthField";
 import AuthShell from "../../components/Auth/AuthShell";
+import Loader from "../../components/Loader/Loader";
 import authStyles from "../../components/Auth/AuthShell.module.css";
 import { validateRegister } from "../../components/Auth/authValidation";
 import { useToast } from "../../components/Toast/ToastProvider";
@@ -211,7 +212,7 @@ export default function Register() {
         </div>
 
         <button type="submit" className={authStyles.submitButton} disabled={isSubmitting}>
-          {isSubmitting ? "Creating..." : "Create Account"}
+          {isSubmitting ? <Loader label="Creating..." variant="compact" /> : "Create Account"}
         </button>
 
         <p className={authStyles.footerText}>

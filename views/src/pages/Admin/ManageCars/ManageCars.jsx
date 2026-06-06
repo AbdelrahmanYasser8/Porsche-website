@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
-import 'bootstrap/dist/css/bootstrap.min.css';
+import Loader from "../../../components/Loader/Loader";
+import Pagination from "../../../components/Pagination/Pagination";
 import { carsApi } from "../../../api/cars";
-import { getCarFallbackImage } from "../../../utils/carAssets";
+import { useToast } from "../../../components/Toast/ToastProvider";
 import styles from './ManageCars.module.css';
 
 const wheelOptions = ['Wheel Type 1', 'Wheel Type 2', 'Wheel Type 3', 'Wheel Type 4'];
@@ -163,8 +164,21 @@ function getVisibleError(submitted, touched, field, error) {
 }
 
 export default function ManageCars() {
+  const { showToast } = useToast();
   const [cars, setCars] = useState([]);
+  const [pagination, setPagination] = useState({
+    page: 1,
+    limit: 8,
+    totalItems: 0,
+    totalPages: 0,
+  });
+  const [summary, setSummary] = useState({
+    totalCars: 0,
+    inStock: 0,
+    outStock: 0,
+  });
   const [search, setSearch] = useState('');
+  const [reloadToken, setReloadToken] = useState(0);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingCarId, setEditingCarId] = useState(null);
   const [formData, setFormData] = useState(emptyCarForm);
@@ -172,8 +186,9 @@ export default function ManageCars() {
   const [formTouched, setFormTouched] = useState(initialFormTouched);
   const [formSubmitted, setFormSubmitted] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [pageError, setPageError] = useState('');
   const [isSaving, setIsSaving] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const pageSize = 8;
 
   useEffect(() => {
     let active = true;
@@ -181,16 +196,56 @@ export default function ManageCars() {
     const loadCars = async () => {
       try {
         setLoading(true);
-        setPageError('');
-        const response = await carsApi.list();
+        const response = await carsApi.list({
+          search: search.trim() || undefined,
+          page: currentPage,
+          limit: pageSize,
+        });
 
         if (active) {
-          setCars(response);
+          const nextCars = Array.isArray(response) ? response : response.items || [];
+          setCars(nextCars);
+          if (response && typeof response === 'object' && 'pagination' in response) {
+            setPagination(response.pagination);
+            setSummary({
+              totalCars: response.summary?.totalCars ?? response.pagination.totalItems ?? nextCars.length,
+              inStock: response.summary?.inStock ?? nextCars.filter((car) => car.status === 'In Stock').length,
+              outStock: response.summary?.outStock ?? nextCars.filter((car) => car.status !== 'In Stock').length,
+            });
+            setCurrentPage(response.pagination.page || currentPage);
+          } else {
+            const inStockCount = nextCars.filter((car) => car.status === 'In Stock').length;
+            setPagination({
+              page: currentPage,
+              limit: pageSize,
+              totalItems: nextCars.length,
+              totalPages: nextCars.length ? 1 : 0,
+            });
+            setSummary({
+              totalCars: nextCars.length,
+              inStock: inStockCount,
+              outStock: nextCars.length - inStockCount,
+            });
+          }
         }
       } catch (error) {
         if (active) {
-          setPageError(error.message || 'Failed to load cars');
+          showToast({
+            variant: 'danger',
+            message: error.message || 'Failed to load cars',
+          });
           setCars([]);
+          setPagination({
+            page: 1,
+            limit: pageSize,
+            totalItems: 0,
+            totalPages: 0,
+          });
+          setSummary({
+            totalCars: 0,
+            inStock: 0,
+            outStock: 0,
+          });
         }
       } finally {
         if (active) {
@@ -204,41 +259,15 @@ export default function ManageCars() {
     return () => {
       active = false;
     };
-  }, []);
+  }, [currentPage, pageSize, reloadToken, search, showToast]);
 
-  const totalCars = cars.length;
-  const inStock = useMemo(
-    () => cars.filter((car) => car.status === 'In Stock').length,
-    [cars],
-  );
-  const filteredCars = useMemo(() => {
-    const normalizedSearch = search.trim().toLowerCase();
-
-    if (!normalizedSearch) {
-      return cars;
-    }
-
-    return cars.filter((car) => {
-      const carYear = String(car.year || car.manufactureYear || '');
-      const searchableValues = [
-        car.name,
-        car.make,
-        car.category,
-        carYear,
-        String(car.price),
-        car.description,
-        car.colors,
-        car.fuelType,
-        car.status,
-      ]
-        .join(' ')
-        .toLowerCase();
-
-      return searchableValues.includes(normalizedSearch);
-    });
-  }, [cars, search]);
-
+  const totalCars = summary.totalCars;
+  const inStock = useMemo(() => summary.inStock, [summary.inStock]);
+  const totalPages = pagination.totalPages;
   const dialogTitle = editingCarId ? 'Edit Car' : 'Add New Car';
+  const handlePageChange = (page) => {
+    setCurrentPage(Math.max(page, 1));
+  };
 
   const openAddDialog = () => {
     setEditingCarId(null);
@@ -312,7 +341,10 @@ export default function ManageCars() {
         setFormTouched((current) => ({ ...current, modelFileName: true }));
         setFormErrors(validateCarForm(nextFormData));
       } catch (error) {
-        setPageError(error.message || 'Unable to read selected file');
+        showToast({
+          variant: 'danger',
+          message: error.message || 'Unable to read selected file',
+        });
       }
 
       return;
@@ -434,7 +466,6 @@ export default function ManageCars() {
 
     try {
       setIsSaving(true);
-      setPageError('');
 
       if (formData.modelFile) {
         const uploadedModel = await carsApi.uploadModel(formData.modelFile);
@@ -443,18 +474,18 @@ export default function ManageCars() {
       }
 
       if (editingCarId) {
-        const updatedCar = await carsApi.update(editingCarId, normalizedCar);
-        setCars((currentCars) =>
-          currentCars.map((car) => (car.id === editingCarId ? updatedCar : car)),
-        );
+        await carsApi.update(editingCarId, normalizedCar);
       } else {
-        const createdCar = await carsApi.create(normalizedCar);
-        setCars((currentCars) => [createdCar, ...currentCars]);
+        await carsApi.create(normalizedCar);
       }
 
+      setReloadToken((current) => current + 1);
       closeDialog();
     } catch (error) {
-      setPageError(error.message || 'Unable to save car');
+      showToast({
+        variant: 'danger',
+        message: error.message || 'Unable to save car',
+      });
     } finally {
       setIsSaving(false);
     }
@@ -462,11 +493,13 @@ export default function ManageCars() {
 
   const handleDeleteCar = async (carId) => {
     try {
-      setPageError('');
       await carsApi.remove(carId);
-      setCars((currentCars) => currentCars.filter((car) => car.id !== carId));
+      setReloadToken((current) => current + 1);
     } catch (error) {
-      setPageError(error.message || 'Unable to delete car');
+      showToast({
+        variant: 'danger',
+        message: error.message || 'Unable to delete car',
+      });
     }
   };
 
@@ -488,18 +521,6 @@ export default function ManageCars() {
           </button>
         </header>
 
-        {pageError ? (
-          <div className="alert alert-danger mb-4" role="alert">
-            {pageError}
-          </div>
-        ) : null}
-
-        {loading ? (
-          <div className="alert alert-secondary mb-4" role="status">
-            Loading cars...
-          </div>
-        ) : null}
-
         <section className={styles.controls} aria-label="Car filters">
           <label className={styles.searchBox} htmlFor="admin-car-search">
             <i className="fa-solid fa-magnifying-glass"></i>
@@ -507,95 +528,115 @@ export default function ManageCars() {
               id="admin-car-search"
               type="search"
               value={search}
-              onChange={(event) => setSearch(event.target.value)}
+              onChange={(event) => {
+                setSearch(event.target.value);
+                setCurrentPage(1);
+              }}
               placeholder="Search by car name, category, year, or status..."
             />
           </label>
         </section>
 
-        <section className={styles.summaryGrid} aria-label="Inventory summary">
-          <article className={styles.summaryCard}>
-            <span>Total Cars</span>
-            <strong>{totalCars}</strong>
-          </article>
-          <article className={styles.summaryCard}>
-            <span>In Stock</span>
-            <strong>{inStock}</strong>
-          </article>
-          <article className={styles.summaryCard}>
-            <span>Out of Stock</span>
-            <strong>{totalCars - inStock}</strong>
-          </article>
-        </section>
+        {loading ? (
+          <Loader label="Loading cars..." />
+        ) : null}
 
-        <section className={styles.tablePanel}>
-          <div className={styles.tableWrap}>
-            <table className={styles.dataTable}>
-              <thead>
-                <tr>
-                  <th>Image</th>
-                  <th>Name</th>
-                  <th>Category</th>
-                  <th>Year</th>
-                  <th>Price</th>
-                  <th>Status</th>
-                  <th>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredCars.map((car) => (
-                  <tr key={car.id}>
-                    <td>
-                      <img className={styles.carImage} src={getCarFallbackImage(car)} alt={car.name} />
-                    </td>
-                    <td>
-                      <div className={styles.primaryText}>{car.name}</div>
-                      <div className={styles.secondaryText}>{car.make}</div>
-                    </td>
-                    <td>{car.category}</td>
-                    <td>{car.year ?? car.manufactureYear}</td>
-                    <td>{formatCurrency(car.price)}</td>
-                    <td>
-                      <span
-                        className={`${styles.statusBadge} ${
-                          car.status === 'In Stock' ? styles.inStock : styles.outStock
-                        }`}
-                      >
-                        {car.status}
-                      </span>
-                    </td>
-                    <td>
-                      <div className={styles.actions}>
-                        <button
-                          className={styles.iconButton}
-                          type="button"
-                          onClick={() => openEditDialog(car)}
-                          aria-label={`Edit ${car.name}`}
-                          title="Edit car"
-                        >
-                          <i className="fa-regular fa-pen-to-square"></i>
-                        </button>
-                        <button
-                          className={`${styles.iconButton} ${styles.dangerButton}`}
-                          type="button"
-                          onClick={() => handleDeleteCar(car.id)}
-                          aria-label={`Delete ${car.name}`}
-                          title="Delete car"
-                        >
-                          <i className="fa-regular fa-trash-can"></i>
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+        {!loading ? (
+          <>
+            <section className={styles.summaryGrid} aria-label="Inventory summary">
+              <article className={styles.summaryCard}>
+                <span>Total Cars</span>
+                <strong>{totalCars}</strong>
+              </article>
+              <article className={styles.summaryCard}>
+                <span>In Stock</span>
+                <strong>{inStock}</strong>
+              </article>
+              <article className={styles.summaryCard}>
+                <span>Out of Stock</span>
+                <strong>{totalCars - inStock}</strong>
+              </article>
+            </section>
 
-          {!loading && filteredCars.length === 0 ? (
-            <div className={styles.emptyState}>No cars match your search.</div>
-          ) : null}
-        </section>
+            <section className={styles.tablePanel}>
+              <div className={styles.tableWrap}>
+                <table className={styles.dataTable}>
+                  <thead>
+                    <tr>
+                      <th>Image</th>
+                      <th>Name</th>
+                      <th>Category</th>
+                      <th>Year</th>
+                      <th>Price</th>
+                      <th>Status</th>
+                      <th>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {cars.map((car) => (
+                      <tr key={car.id}>
+                        <td>
+                          <img className={styles.carImage} src={car.image} alt={car.name} />
+                        </td>
+                        <td>
+                          <div className={styles.primaryText}>{car.name}</div>
+                          <div className={styles.secondaryText}>{car.make}</div>
+                        </td>
+                        <td>{car.category}</td>
+                        <td>{car.year ?? car.manufactureYear}</td>
+                        <td>{formatCurrency(car.price)}</td>
+                        <td>
+                          <span
+                            className={`${styles.statusBadge} ${
+                              car.status === 'In Stock' ? styles.inStock : styles.outStock
+                            }`}
+                          >
+                            {car.status}
+                          </span>
+                        </td>
+                        <td>
+                          <div className={styles.actions}>
+                            <button
+                              className={styles.iconButton}
+                              type="button"
+                              onClick={() => openEditDialog(car)}
+                              aria-label={`Edit ${car.name}`}
+                              title="Edit car"
+                            >
+                              <i className="fa-regular fa-pen-to-square"></i>
+                            </button>
+                            <button
+                              className={`${styles.iconButton} ${styles.dangerButton}`}
+                              type="button"
+                              onClick={() => handleDeleteCar(car.id)}
+                              aria-label={`Delete ${car.name}`}
+                              title="Delete car"
+                            >
+                              <i className="fa-regular fa-trash-can"></i>
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              {cars.length === 0 ? (
+                <div className={styles.emptyState}>No cars match your search.</div>
+              ) : null}
+            </section>
+
+            <Pagination
+              currentPage={pagination.page}
+              totalPages={totalPages}
+              totalItems={pagination.totalItems}
+              onPageChange={handlePageChange}
+              itemLabel="cars"
+              itemLabelSingular="car"
+            />
+          </>
+        ) : null}
       </div>
 
       {isDialogOpen ? (
@@ -855,8 +896,14 @@ export default function ManageCars() {
 
               <div className={styles.dialogActions}>
                 <button className={styles.saveButton} type="submit" disabled={isSaving}>
-                  <i className="fa-regular fa-floppy-disk"></i>
-                  {isSaving ? 'Saving...' : 'Save'}
+                  {isSaving ? (
+                    <Loader label="Saving..." variant="compact" />
+                  ) : (
+                    <>
+                      <i className="fa-regular fa-floppy-disk"></i>
+                      Save
+                    </>
+                  )}
                 </button>
                 <button className={styles.cancelButton} type="button" onClick={closeDialog}>
                   Cancel

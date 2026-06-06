@@ -2,17 +2,7 @@ function formatCurrency(value) {
   return `$${Number(value || 0).toLocaleString("en-US")}`;
 }
 
-function formatOrderDate(value) {
-  const date = value ? new Date(value) : new Date();
-
-  return date.toLocaleDateString("en-US", {
-    year: "numeric",
-    month: "short",
-    day: "numeric",
-  });
-}
-
-function formatJoinDate(value) {
+function formatDate(value) {
   const date = value ? new Date(value) : new Date();
 
   return date.toLocaleDateString("en-US", {
@@ -88,7 +78,7 @@ function serializeCar(car) {
   const modelMimeType = doc.modelMimeType || "";
   const modelUrl = doc.modelFileId
     ? `/api/cars/${doc._id.toString()}/model`
-    : doc.modelDataUrl || (doc.modelFileName ? `/${encodeURIComponent(doc.modelFileName)}` : "");
+    : doc.modelDataUrl || "";
 
   return {
     id: doc._id.toString(),
@@ -135,7 +125,7 @@ function serializeOrder(order) {
     amount,
     total: formatCurrency(amount),
     status: doc.status || "Processing",
-    date: formatOrderDate(doc.createdAt),
+    date: formatDate(doc.createdAt),
     items: [
       {
         name: doc.product,
@@ -158,7 +148,7 @@ function serializeUser(user, ordersCount = 0) {
     email: doc.email,
     role: doc.role || "User",
     status: doc.status || "Active",
-    joinDate: formatJoinDate(doc.createdAt),
+    joinDate: formatDate(doc.createdAt),
     orders: ordersCount,
     ordersCount,
     createdAt: doc.createdAt,
@@ -167,9 +157,6 @@ function serializeUser(user, ordersCount = 0) {
 }
 
 module.exports = {
-  formatCurrency,
-  formatJoinDate,
-  formatOrderDate,
   normalizeCarInput,
   serializeCar,
   serializeOrder,

@@ -1,7 +1,7 @@
 .loader {
   width: 48px;
   height: 48px;
-  border: 5px solid #fff;
+  border: 5px solid var(--text-primary);
   border-bottom-color: transparent;
   border-radius: 50%;
   display: inline-block;
@@ -19,11 +19,47 @@
 }
 
 .container {
-  background-color: rgba(128, 128, 128, 0.7); /* gray with transparency */
-  height: 100vh;
-  width: 100vw;
+  padding: 20px;
   display: flex;
+  flex-direction: column;
+  gap: 12px;
   justify-content: center;
   align-items: center;
+  color: var(--text-secondary);
+  text-align: center;
+}
 
+.section {
+  min-height: 160px;
+}
+
+.page {
+  min-height: calc(100vh - 250px);
+  padding: 48px 24px;
+}
+
+.compact {
+  min-width: 0;
+  min-height: 0;
+  padding: 0;
+  flex-direction: row;
+  gap: 8px;
+  color: inherit;
+}
+
+.compact .loader {
+  width: 16px;
+  height: 16px;
+  border-width: 2px;
+  border-color: currentColor;
+  border-bottom-color: transparent;
+}
+
+.label {
+  font-size: 0.92rem;
+  white-space: nowrap;
+}
+
+.compact .label {
+  font-size: inherit;
 }
