@@ -2,7 +2,7 @@ import styles from "./CarDetails.module.css";
 import Navbar from "../../components/Navbar/Navbar";
 import Footer from "../../components/Footer/Footer";
 import Loader from "../../components/Loader/Loader";
-import React, { useEffect, useMemo, useRef, Suspense, useState } from "react";
+import { Suspense, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { useGLTF, OrbitControls, Environment } from "@react-three/drei";
@@ -49,22 +49,6 @@ function normalizeNodeKey(value) {
     .replace(/&/g, " and ")
     .replace(/[^a-z0-9]+/g, "_")
     .replace(/^_+|_+$/g, "");
-}
-
-function getColorSwatch(color) {
-  const value = normalizeText(color);
-
-  if (value.includes("black")) return "#111111";
-  if (value.includes("white")) return "#f5f5f2";
-  if (value.includes("red")) return "#a81f2f";
-  if (value.includes("blue")) return "#1f4f9b";
-  if (value.includes("green")) return "#2e7d32";
-  if (value.includes("yellow")) return "#d8b100";
-  if (value.includes("purple")) return "#6a3fa0";
-  if (value.includes("orange")) return "#d06a1b";
-  if (value.includes("cyan") || value.includes("cayan")) return "#2aa8a1";
-
-  return "#8d8d8d";
 }
 
 function getColorNodeCandidates(color) {
@@ -272,42 +256,47 @@ function SceneButtons({ scenes, setCameraTarget }) {
 }
 
 function PorscheModel({ color, wheel, modelUrl }) {
-  const resolvedModelUrl = modelUrl || "/porsche%20model.glb";
-  const gltf = useGLTF(resolvedModelUrl);
-  const modelRef = useRef();
+  const gltf = useGLTF(modelUrl);
   const selectedWheelNode = getWheelNodeName(wheel);
+  const model = useMemo(() => {
+    const clone = gltf.scene.clone(true);
+    const nodes = {};
 
-  useEffect(() => {
-    if (!gltf.nodes) return;
+    clone.traverse((node) => {
+      if (node.name) {
+        nodes[node.name] = node;
+      }
+    });
 
-    const bodyNodes = getAvailableBodyNodeNames(gltf.nodes);
+    const bodyNodes = getAvailableBodyNodeNames(nodes);
 
     bodyNodes.forEach((name) => {
-      gltf.nodes[name].visible = false;
+      nodes[name].visible = false;
     });
 
     const wheels = ["wheel_type1", "wheel_type2", "wheel_type3", "wheel_type4"];
 
     wheels.forEach((name) => {
-      if (gltf.nodes[name]) {
-        gltf.nodes[name].visible = false;
+      if (nodes[name]) {
+        nodes[name].visible = false;
       }
     });
 
-    if (gltf.nodes[selectedWheelNode]) {
-      gltf.nodes[selectedWheelNode].visible = true;
+    if (nodes[selectedWheelNode]) {
+      nodes[selectedWheelNode].visible = true;
     }
 
-    const selectedBody = getColorNodeName(gltf.nodes, color);
-    if (gltf.nodes[selectedBody]) {
-      gltf.nodes[selectedBody].visible = true;
+    const selectedBody = getColorNodeName(nodes, color);
+    if (nodes[selectedBody]) {
+      nodes[selectedBody].visible = true;
     }
-  }, [color, gltf, selectedWheelNode]);
+
+    return clone;
+  }, [color, gltf.scene, selectedWheelNode]);
 
   return (
     <primitive
-      ref={modelRef}
-      object={gltf.scene}
+      object={model}
       scale={0.5}
       position={[0, -1, 0]}
     />
@@ -383,12 +372,12 @@ export default function CarDetails() {
   });
   const [car, setCar] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
   const [selectedColor, setSelectedColor] = useState("Black");
   const [selectedWheel, setSelectedWheel] = useState("wheel_type1");
   const [isOrdering, setIsOrdering] = useState(false);
   const colorOptions = useMemo(() => parseOptionList(car?.colorOptions || car?.colors), [car]);
   const wheelOptions = useMemo(() => parseOptionList(car?.wheelOptions || car?.wheels), [car]);
+  const isOutOfStock = car?.status === "Out of Stock";
 
   useEffect(() => {
     if (!colorOptions.length) {
@@ -414,7 +403,6 @@ export default function CarDetails() {
     const loadCar = async () => {
       try {
         setLoading(true);
-        setError("");
 
         let response;
         if (id) {
@@ -429,7 +417,10 @@ export default function CarDetails() {
         }
       } catch (fetchError) {
         if (active) {
-          setError(fetchError.message || "Failed to load car details");
+          showToast({
+            variant: "danger",
+            message: fetchError.message || "Failed to load car details",
+          });
           setCar(null);
         }
       } finally {
@@ -444,9 +435,17 @@ export default function CarDetails() {
     return () => {
       active = false;
     };
-  }, [id]);
+  }, [id, showToast]);
 
   const handlePlaceOrder = async () => {
+    if (isOutOfStock) {
+      showToast({
+        variant: "warning",
+        message: "This car is out of stock.",
+      });
+      return;
+    }
+
     if (!user) {
       navigate("/login", { state: { from: { pathname: id ? `/CarDetails/${id}` : "/CarDetails" } } });
       return;
@@ -482,6 +481,18 @@ export default function CarDetails() {
     }
   };
 
+  if (loading) {
+    return (
+      <>
+        <Navbar />
+        <main>
+          <Loader label="Loading car details..." variant="page" />
+        </main>
+        <Footer />
+      </>
+    );
+  }
+
   return (
     <>
       <Navbar />
@@ -489,35 +500,45 @@ export default function CarDetails() {
         <section className={styles.previewPanel}>
           <div className={styles.previewSticky}>
             <div className={styles.modelContainer}>
-              <Canvas
-                className={styles.modelCanvas}
-                camera={{ position: [1.95, 0.51, 4.37], fov: 50 }}
-              >
-                <Suspense fallback={<Loader />}>
-                  <Environment
-                    files="/qwantani_puresky_4k.hdr"
-                    background={true}
-                    environmentRotation={[7, 8, 0]}
+              {car?.modelUrl ? (
+                <Canvas
+                  className={styles.modelCanvas}
+                  camera={{ position: [1.95, 0.51, 4.37], fov: 50 }}
+                >
+                  <Suspense fallback={<Loader canvas label="Loading 3D model..." />}>
+                    <Environment
+                      files="/qwantani_puresky_4k.hdr"
+                      background={true}
+                      environmentRotation={[7, 8, 0]}
+                    />
+                    <PorscheModel color={selectedColor} wheel={selectedWheel} modelUrl={car.modelUrl} />
+                  </Suspense>
+                  <CameraAnimator
+                    targetPosition={cameraTarget.position}
+                    targetLookAt={cameraTarget.lookAt}
+                    orbitRef={orbitRef}
                   />
-                  <PorscheModel color={selectedColor} wheel={selectedWheel} modelUrl={car?.modelUrl} />
-                </Suspense>
-                <CameraAnimator
-                  targetPosition={cameraTarget.position}
-                  targetLookAt={cameraTarget.lookAt}
-                  orbitRef={orbitRef}
-                />
-                <OrbitControls
-                  ref={orbitRef}
-                  minPolarAngle={Math.PI / 6}
-                  maxPolarAngle={Math.PI / 2}
-                  minDistance={0}
-                  maxDistance={5}
-                />
-              </Canvas>
+                  <OrbitControls
+                    ref={orbitRef}
+                    minPolarAngle={Math.PI / 6}
+                    maxPolarAngle={Math.PI / 2}
+                    minDistance={0}
+                    maxDistance={5}
+                  />
+                </Canvas>
+              ) : (
+                <div className={styles.modelUnavailable} role="status">
+                  <i className="fa-solid fa-cube" aria-hidden="true" />
+                  <strong>3D model unavailable</strong>
+                  <span>This vehicle does not have a model uploaded yet.</span>
+                </div>
+              )}
             </div>
           </div>
 
-          <SceneButtons scenes={scenes} setCameraTarget={setCameraTarget} />
+          {car?.modelUrl ? (
+            <SceneButtons scenes={scenes} setCameraTarget={setCameraTarget} />
+          ) : null}
         </section>
 
         <section className={styles.detailsColumn}>
@@ -529,8 +550,8 @@ export default function CarDetails() {
               </>
             ) : (
               <>
-                <h1>Loading car details</h1>
-                <p className="text-secondary">Fetching the latest vehicle data from the backend...</p>
+                <h1>Car unavailable</h1>
+                <p className="text-secondary">Vehicle details could not be loaded.</p>
               </>
             )}
             <h5>Price</h5>
@@ -542,18 +563,18 @@ export default function CarDetails() {
             <h5 className="my-4">Wheels</h5>
             <WheelSelector options={wheelOptions} value={selectedWheel} setWheel={setSelectedWheel} />
 
-            {error ? (
-              <div className="alert alert-danger mt-3 mb-0" role="alert">
-                {error}
-              </div>
-            ) : null}
-
             <button
               className={`w-100 fs-5 rounded-3 mt-4 ${styles["place-order"] || ""}`}
               onClick={handlePlaceOrder}
-              disabled={loading || isOrdering}
+              disabled={!car || isOrdering || isOutOfStock}
             >
-              {isOrdering ? "Placing Order..." : "Place Order"}
+              {isOutOfStock ? (
+                "Out of Stock"
+              ) : isOrdering ? (
+                <Loader label="Placing order..." variant="compact" />
+              ) : (
+                "Place Order"
+              )}
             </button>
           </div>
 

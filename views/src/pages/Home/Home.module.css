@@ -524,29 +524,6 @@
   border-color: var(--text-primary);
 }
 
-.btnBrochure {
-  display: inline-flex;
-  align-items: center;
-  gap: 12px;
-  background: transparent;
-  color: var(--text-primary) !important;
-  padding: 15px 36px;
-  border: 1px solid var(--border-light);
-  font-weight: 700;
-  font-size: 13px;
-  text-decoration: none;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  transition: all 0.3s ease;
-  cursor: pointer;
-}
-
-.btnBrochure:hover {
-  background: var(--text-primary);
-  color: var(--bg-primary) !important;
-  border-color: var(--text-primary);
-}
-
 .btnArrowIcon {
   width: 16px;
   height: 16px;
@@ -556,21 +533,6 @@
 
 .btnExploreSpecial:hover .btnArrowIcon {
   transform: translateX(4px);
-}
-
-.btnBrochure:hover .btnArrowIcon {
-  transform: translateY(2px);
-}
-
-.consumptionEmissionsSection {
-  padding: 12px 20px 16px;
-  border-top: 1px solid var(--border-color);
-  background-color: var(--bg-secondary);
-  color: var(--text-muted);
-  font-size: 10px;
-  text-align: center;
-  line-height: 1.4;
-  width: 100%;
 }
 
 @media (max-width: 900px) {
@@ -662,8 +624,7 @@
     width: 100%;
   }
 
-  .btnExploreSpecial,
-  .btnBrochure {
+  .btnExploreSpecial {
     width: 100%;
     justify-content: center;
   }
@@ -678,7 +639,6 @@
   .slideImage,
   .controlBtn,
   .btnExploreSpecial,
-  .btnBrochure,
   .btnArrowIcon,
   .hexagon,
   .arrowIcon {

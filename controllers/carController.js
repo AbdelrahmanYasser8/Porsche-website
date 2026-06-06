@@ -4,6 +4,10 @@ const {
   normalizeCarInput,
   serializeCar,
 } = require("../utils/serializers");
+const {
+  buildPagination,
+  getPaginationParams,
+} = require("../utils/pagination");
 
 const GridFSBucket = mongoose.mongo.GridFSBucket;
 const ObjectId = mongoose.mongo.ObjectId;
@@ -40,23 +44,51 @@ function uploadBufferToGridFs(buffer, { filename, contentType }) {
 const getAll = async (req, res) => {
   try {
     const { category, search, year, maxPrice, status } = req.query;
+    const pagination = getPaginationParams(req.query, 9);
     const filter = {};
+    const normalizedSearch = search?.trim();
 
     if (category && category !== "All") filter.category = category;
-    if (year && year !== "All") filter.manufactureYear = Number(year);
-    if (maxPrice) filter.price = { $lte: Number(maxPrice) };
+    if (year && year !== "All" && !Number.isNaN(Number(year))) {
+      filter.manufactureYear = Number(year);
+    }
+    if (maxPrice && !Number.isNaN(Number(maxPrice))) {
+      filter.price = { $lte: Number(maxPrice) };
+    }
     if (status && status !== "All") filter.status = status;
-    if (search) {
+    if (normalizedSearch) {
+      const numericSearch = Number(normalizedSearch);
+      const searchTerms = [
+        { name: { $regex: normalizedSearch, $options: "i" } },
+        { make: { $regex: normalizedSearch, $options: "i" } },
+        { category: { $regex: normalizedSearch, $options: "i" } },
+        { colors: { $regex: normalizedSearch, $options: "i" } },
+        { description: { $regex: normalizedSearch, $options: "i" } },
+        { fuelType: { $regex: normalizedSearch, $options: "i" } },
+        { status: { $regex: normalizedSearch, $options: "i" } },
+      ];
+
+      if (!Number.isNaN(numericSearch)) {
+        searchTerms.push(
+          { manufactureYear: numericSearch },
+          { price: numericSearch },
+        );
+      }
+
       filter.$or = [
-        { name: { $regex: search, $options: "i" } },
-        { make: { $regex: search, $options: "i" } },
-        { category: { $regex: search, $options: "i" } },
-        { colors: { $regex: search, $options: "i" } },
+        ...searchTerms,
       ];
     }
 
     const cars = await Car.find(filter).sort({ createdAt: -1 });
-    res.json(cars.map(serializeCar));
+    const serializedCars = cars.map(serializeCar);
+
+    if (!pagination) {
+      return res.json(serializedCars);
+    }
+
+    const paginated = buildPagination(serializedCars, pagination.page, pagination.limit);
+    res.json(paginated);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

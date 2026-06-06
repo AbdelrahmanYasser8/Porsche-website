@@ -2,7 +2,9 @@ import { useEffect, useState } from "react";
 import "bootstrap/dist/css/bootstrap.min.css";
 import { Link } from "react-router-dom";
 import Footer from "../../../components/Footer/Footer";
+import Loader from "../../../components/Loader/Loader";
 import Navbar from "../../../components/Navbar/Navbar";
+import { useToast } from "../../../components/Toast/ToastProvider";
 import { adminApi } from "../../../api/admin";
 import styles from "./Dashboard.module.css";
 
@@ -51,6 +53,7 @@ function StatusBadge({ status }) {
 }
 
 export default function Dashboard() {
+  const { showToast } = useToast();
   const [dashboard, setDashboard] = useState({
     stats: {
       totalUsers: 0,
@@ -61,7 +64,6 @@ export default function Dashboard() {
     recentOrders: [],
   });
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
 
   useEffect(() => {
     let active = true;
@@ -69,7 +71,6 @@ export default function Dashboard() {
     const loadDashboard = async () => {
       try {
         setLoading(true);
-        setError("");
         const response = await adminApi.getDashboardSummary();
 
         if (active) {
@@ -77,7 +78,10 @@ export default function Dashboard() {
         }
       } catch (fetchError) {
         if (active) {
-          setError(fetchError.message || "Failed to load dashboard");
+          showToast({
+            variant: "danger",
+            message: fetchError.message || "Failed to load dashboard",
+          });
         }
       } finally {
         if (active) {
@@ -91,7 +95,7 @@ export default function Dashboard() {
     return () => {
       active = false;
     };
-  }, []);
+  }, [showToast]);
 
   const stats = [
     {
@@ -132,82 +136,77 @@ export default function Dashboard() {
             </div>
           </header>
 
-          {error ? (
-            <div className="alert alert-danger mb-4" role="alert">
-              {error}
-            </div>
+          {loading ? (
+            <Loader label="Loading dashboard..." />
           ) : null}
 
-          <section className={styles.statsGrid} aria-label="Dashboard summary">
-            {stats.map((stat) => (
-              <article className={styles.statCard} key={stat.label}>
-                <div className={styles.statTop}>
-                  <span className={styles.statIcon} aria-hidden="true">
-                    <i className={stat.icon}></i>
+          {!loading ? (
+            <section className={styles.statsGrid} aria-label="Dashboard summary">
+              {stats.map((stat) => (
+                <article className={styles.statCard} key={stat.label}>
+                  <div className={styles.statTop}>
+                    <span className={styles.statIcon} aria-hidden="true">
+                      <i className={stat.icon}></i>
+                    </span>
+                  </div>
+                  <span className={styles.statLabel}>{stat.label}</span>
+                  <strong className={styles.statValue}>{stat.value}</strong>
+                </article>
+              ))}
+            </section>
+          ) : null}
+
+          {!loading ? (
+            <section className={styles.quickGrid} aria-label="Admin shortcuts">
+              {quickActions.map((action) => (
+                <Link className={styles.quickCard} to={action.href} key={action.title}>
+                  <span className={styles.quickIcon} aria-hidden="true">
+                    <i className={action.icon}></i>
                   </span>
+                  <span>
+                    <strong>{action.title}</strong>
+                    <small>{action.description}</small>
+                  </span>
+                  <i className={`fa-solid fa-arrow-right ${styles.quickArrow}`}></i>
+                </Link>
+              ))}
+            </section>
+          ) : null}
+
+          {!loading ? (
+            <section className={styles.tablePanel}>
+              <div className={styles.panelHeader}>
+                <div>
+                  <p className={styles.panelEyebrow}>Recent Orders</p>
+                  <h2 className={styles.panelTitle}>Latest customer activity</h2>
                 </div>
-                <span className={styles.statLabel}>{stat.label}</span>
-                <strong className={styles.statValue}>{stat.value}</strong>
-              </article>
-            ))}
-          </section>
-
-          <section className={styles.quickGrid} aria-label="Admin shortcuts">
-            {quickActions.map((action) => (
-              <Link className={styles.quickCard} to={action.href} key={action.title}>
-                <span className={styles.quickIcon} aria-hidden="true">
-                  <i className={action.icon}></i>
-                </span>
-                <span>
-                  <strong>{action.title}</strong>
-                  <small>{action.description}</small>
-                </span>
-                <i className={`fa-solid fa-arrow-right ${styles.quickArrow}`}></i>
-              </Link>
-            ))}
-          </section>
-
-          <section className={styles.tablePanel}>
-            <div className={styles.panelHeader}>
-              <div>
-                <p className={styles.panelEyebrow}>Recent Orders</p>
-                <h2 className={styles.panelTitle}>Latest customer activity</h2>
+                <Link className={styles.textLink} to="/admin/orders">
+                  View all
+                  <i className="fa-solid fa-arrow-right"></i>
+                </Link>
               </div>
-              <Link className={styles.textLink} to="/admin/orders">
-                View all
-                <i className="fa-solid fa-arrow-right"></i>
-              </Link>
-            </div>
 
-            <div className={styles.tableWrap}>
-              <table className={styles.ordersTable}>
-                <thead>
-                  <tr>
-                    <th>Order ID</th>
-                    <th>Customer</th>
-                    <th>Product</th>
-                    <th>Amount</th>
-                    <th>Status</th>
-                    <th>Date</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {loading ? (
+              <div className={styles.tableWrap}>
+                <table className={styles.ordersTable}>
+                  <thead>
                     <tr>
-                      <td colSpan="6" className="text-center text-secondary py-4">
-                        Loading dashboard...
-                      </td>
+                      <th>Order ID</th>
+                      <th>Customer</th>
+                      <th>Product</th>
+                      <th>Amount</th>
+                      <th>Status</th>
+                      <th>Date</th>
                     </tr>
-                  ) : null}
-                  {!loading && dashboard.recentOrders.length === 0 ? (
-                    <tr>
-                      <td colSpan="6" className="text-center text-secondary py-4">
-                        No recent orders found.
-                      </td>
-                    </tr>
-                  ) : null}
-                  {!loading &&
-                    dashboard.recentOrders.map((order) => (
+                  </thead>
+                  <tbody>
+                    {dashboard.recentOrders.length === 0 ? (
+                      <tr>
+                        <td colSpan="6" className="text-center text-secondary py-4">
+                          No recent orders found.
+                        </td>
+                      </tr>
+                    ) : null}
+                    {dashboard.recentOrders.map((order) => (
                       <tr key={order.dbId}>
                         <td>{order.id}</td>
                         <td>{order.customer}</td>
@@ -224,10 +223,11 @@ export default function Dashboard() {
                         <td>{order.date}</td>
                       </tr>
                     ))}
-                </tbody>
-              </table>
-            </div>
-          </section>
+                  </tbody>
+                </table>
+              </div>
+            </section>
+          ) : null}
         </div>
       </main>
 

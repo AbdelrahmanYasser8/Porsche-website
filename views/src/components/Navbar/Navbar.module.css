@@ -444,6 +444,8 @@
   [data-theme="dark"] .mobileCurrencySelect option {
     background-color: #1a1a1a;
     color: #e0e0e0;
+  .accountArea > .themeToggle {
+    display: none;
   }
 
   .mobileAccountLinks .navLink:last-child {
@@ -460,5 +462,13 @@
   .mobileAccountLink i {
     width: 18px;
     text-align: center;
+  }
+
+  .transparentNavbar .mobileAccountLink {
+    color: #ffffff !important;
+  }
+
+  .transparentNavbar .mobileAccountLink i {
+    color: #ffffff;
   }
 }

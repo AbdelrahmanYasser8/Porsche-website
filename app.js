@@ -42,8 +42,6 @@ app.use(
   }),
 );
 
-app.use(express.static(path.join(__dirname, "public")));
-
 const authRoutes = require("./routes/auth");
 const carRoutes = require("./routes/cars");
 const orderRoutes = require("./routes/orders");
