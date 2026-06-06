@@ -9,6 +9,7 @@ import Pagination from "../../components/Pagination/Pagination";
 import { useToast } from "../../components/Toast/ToastProvider";
 import { carsApi } from "../../api/cars";
 import { getCarFallbackImage } from "../../utils/carAssets";
+import { useCurrency } from "../../context/CurrencyContext";
 import styles from "./CarsListing.module.css";
 
 const CATEGORIES = ["All", "SUV", "Sports", "Electric", "Sedan"];
@@ -36,6 +37,7 @@ const getCategoryFromPath = (pathname) => {
 
 export default function CarListing() {
   const location = useLocation();
+  const { formatPrice, activeCurrency } = useCurrency();
   const { showToast } = useToast();
   const [cars, setCars] = useState([]);
   const [pagination, setPagination] = useState({
@@ -192,8 +194,8 @@ export default function CarListing() {
                 }}
               />
               <div className="d-flex justify-content-between" style={{ fontSize: "0.82rem", color: "#888" }}>
-                <span>$0</span>
-                <span>${priceRange.toLocaleString()}</span>
+                <span>{activeCurrency.symbol}0</span>
+                <span>{formatPrice(priceRange)}</span>
               </div>
 
               <div className={`${styles.filterLabel} mb-2 mt-3`}>Year</div>

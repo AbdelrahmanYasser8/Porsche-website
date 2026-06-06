@@ -1,6 +1,7 @@
 import 'bootstrap/dist/css/bootstrap.min.css';
 import styles from './CarCard.module.css';
 import { Link } from "react-router-dom";
+import { useCurrency } from "../../context/CurrencyContext";
 
 
 const userIcon = <i className="fa-solid fa-user pe-2"></i>;
@@ -18,6 +19,7 @@ function fuleIcon(fuel) {
 
 
 export default function CarCard({ id, name, year, fuel, seats, price, image, status = "In Stock" }) {
+  const { formatPrice } = useCurrency();
   const isOutOfStock = status === "Out of Stock";
 
   return (
@@ -33,7 +35,7 @@ export default function CarCard({ id, name, year, fuel, seats, price, image, sta
           </div>
           <div className="d-flex justify-content-between mb-1" style={{ fontSize: "0.8rem", color: "#999" }}>
             <span>{year}</span>
-            <span>${price.toLocaleString()}</span>
+            <span>{formatPrice(price)}</span>
           </div>
           <div className="d-flex justify-content-between mb-3" style={{ fontSize: "0.8rem", color: "#999" }}>
             <span>{fuleIcon(fuel)}{fuel}</span>
