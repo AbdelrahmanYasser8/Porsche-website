@@ -203,38 +203,4 @@ const remove = async (req, res) => {
   }
 };
 
-const seed = async (req, res) => {
-  try {
-    const count = await Car.countDocuments();
-    if (count > 0) return res.json({ message: 'Cars already seeded' });
-
-    await Car.insertMany(seedData);
-    res.status(201).json({ message: 'Cars seeded', count: seedData.length });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-};
-
-const seedData = [
-  { name: "911 GT3 RS", category: "Sports", manufactureYear: 2026, price: 412000, fuelType: "Gasoline", seating: 2, horsepower: 518, topSpeed: 184, status: "In Stock" },
-  { name: "Taycan", category: "Electric", manufactureYear: 2025, price: 130000, fuelType: "Electric", seating: 4, horsepower: 402, topSpeed: 143, status: "In Stock" },
-  { name: "Macan", category: "SUV", manufactureYear: 2026, price: 90000, fuelType: "Gasoline", seating: 4, horsepower: 261, topSpeed: 144, status: "In Stock" },
-  { name: "911 Carrera", category: "Sedan", manufactureYear: 2026, price: 185000, fuelType: "Gasoline", seating: 2, horsepower: 388, topSpeed: 183, status: "In Stock" },
-  { name: "Taycan Turbo S", category: "Electric", manufactureYear: 2025, price: 280000, fuelType: "Electric", seating: 4, horsepower: 761, topSpeed: 205, status: "In Stock" },
-  { name: "Macan Electric", category: "SUV", manufactureYear: 2026, price: 90000, fuelType: "Electric", seating: 4, horsepower: 355, topSpeed: 137, status: "Out of Stock" },
-  { name: "Macan GTS", category: "SUV", manufactureYear: 2024, price: 135000, fuelType: "Gasoline", seating: 4, horsepower: 434, topSpeed: 169, status: "In Stock" },
-  { name: "Macan Turbo Electric", category: "SUV", manufactureYear: 2026, price: 155000, fuelType: "Electric", seating: 4, horsepower: 630, topSpeed: 162, status: "In Stock" },
-  { name: "911 Targa 4 GTS", category: "Sedan", manufactureYear: 2025, price: 330000, fuelType: "Gasoline", seating: 2, horsepower: 473, topSpeed: 192, status: "In Stock" },
-  { name: "911 Turbo S Cabriolet", category: "Sports", manufactureYear: 2026, price: 450000, fuelType: "Gasoline", seating: 2, horsepower: 640, topSpeed: 205, status: "In Stock" },
-].map((car) => ({
-  ...car,
-  make: "Porsche",
-  description: "",
-  colors: "Black, White",
-  wheels: ["Wheel Type 1"],
-  image: "",
-  thumbnailFileName: "",
-  modelFileName: "",
-}));
-
-module.exports = { getAll, getById, getModel, uploadModel, create, update, remove, seed };
+module.exports = { getAll, getById, getModel, uploadModel, create, update, remove };

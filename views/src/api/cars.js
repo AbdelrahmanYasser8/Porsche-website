@@ -34,9 +34,4 @@ export const carsApi = {
       method: "DELETE",
     });
   },
-  seed() {
-    return apiRequest("/api/cars/seed", {
-      method: "GET",
-    });
-  },
 };

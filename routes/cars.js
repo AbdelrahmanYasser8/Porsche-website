@@ -7,13 +7,11 @@ const {
   create,
   update,
   remove,
-  seed,
   uploadModel,
 } = require('../controllers/carController');
 const { requireAuth, requireAdmin } = require('../middleware/auth');
 
 router.get('/', getAll);
-router.get('/seed', requireAuth, requireAdmin, seed);
 router.get('/:id/model', getModel);
 router.get('/:id', getById);
 router.post('/model-assets', requireAuth, requireAdmin, express.raw({ type: '*/*', limit: '200mb' }), uploadModel);
