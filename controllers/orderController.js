@@ -1,4 +1,8 @@
 const Order = require("../models/Order");
+const {
+  sendOrderPlacedEmail,
+  sendOrderStatusEmail,
+} = require("../utils/orderEmails");
 const { serializeOrder } = require("../utils/serializers");
 const {
   buildPagination,
@@ -89,7 +93,7 @@ const create = async (req, res) => {
       return res.status(401).json({ error: "Not authenticated" });
     }
 
-    const { product, color, wheelType, amount, status } = req.body;
+    const { product, color, wheelType, amount } = req.body;
     if (!product?.trim() || amount === undefined || amount === null) {
       return res.status(400).json({ error: "Product and amount are required" });
     }
@@ -101,12 +105,13 @@ const create = async (req, res) => {
       color: color?.trim() || "",
       wheelType: wheelType?.trim() || "",
       amount: Number(amount),
-      status: status || "Processing",
       user: req.user._id,
     });
 
     await order.save();
-    res.status(201).json(serializeOrder(order));
+    const serializedOrder = serializeOrder(order);
+    await sendOrderPlacedEmail(serializedOrder);
+    res.status(201).json(serializedOrder);
   } catch (err) {
     if (err.name === "ValidationError") {
       return res.status(400).json({ error: err.message });
@@ -119,13 +124,23 @@ const create = async (req, res) => {
 const updateStatus = async (req, res) => {
   try {
     const { status } = req.body;
-    const order = await Order.findByIdAndUpdate(
-      req.params.id,
-      { status },
-      { new: true, runValidators: true },
-    );
+    if (!status) {
+      return res.status(400).json({ error: "Status is required" });
+    }
+
+    const order = await Order.findById(req.params.id);
     if (!order) return res.status(404).json({ error: 'Order not found' });
-    res.json(serializeOrder(order));
+
+    const previousStatus = order.status;
+    order.status = status;
+    await order.save();
+
+    const serializedOrder = serializeOrder(order);
+    if (previousStatus !== order.status) {
+      await sendOrderStatusEmail(serializedOrder);
+    }
+
+    res.json(serializedOrder);
   } catch (err) {
     if (err.name === "ValidationError") {
       return res.status(400).json({ error: err.message });

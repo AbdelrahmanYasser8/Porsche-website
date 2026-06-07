@@ -3,9 +3,9 @@ const User = require("../models/User");
 const { buildSessionUser, syncSessionUser } = require("../utils/session");
 
 const defaultAdminSeed = {
-  name: process.env.SEED_ADMIN_NAME || "Admin",
-  email: (process.env.SEED_ADMIN_EMAIL || "admin@porsche.com").trim().toLowerCase(),
-  password: process.env.SEED_ADMIN_PASSWORD || "Admin123!",
+  name: process.env.SEED_ADMIN_NAME?.trim(),
+  email: process.env.SEED_ADMIN_EMAIL?.trim().toLowerCase(),
+  password: process.env.SEED_ADMIN_PASSWORD,
 };
 
 async function createSeedAdmin({ overwrite = false } = {}) {
