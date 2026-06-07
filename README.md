@@ -42,3 +42,10 @@ Use `SMTP_SECURE=true` with port `465`. Port `587` normally uses
 
 If SMTP is not configured or delivery fails, the order operation still
 succeeds and the backend logs the email issue.
+
+## Email verification
+
+Login and registration require a six-digit code sent through the configured
+SMTP account. Codes expire after 10 minutes, can be attempted five times, and
+can be resent after 60 seconds. Registration creates the user only after the
+code is verified, and login creates the session only after verification.

@@ -14,6 +14,8 @@ export default function AuthField({
   helperText,
   autoComplete,
   inputMode,
+  maxLength,
+  pattern,
   showToggle = false,
   isPasswordVisible = false,
   onTogglePasswordVisibility,
@@ -43,6 +45,8 @@ export default function AuthField({
           onBlur={onBlur}
           autoComplete={autoComplete}
           inputMode={inputMode}
+          maxLength={maxLength}
+          pattern={pattern}
           aria-invalid={Boolean(error)}
           aria-describedby={describedBy}
         />

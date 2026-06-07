@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import AuthField from "../../components/Auth/AuthField";
 import AuthShell from "../../components/Auth/AuthShell";
+import VerificationForm from "../../components/Auth/VerificationForm";
 import Loader from "../../components/Loader/Loader";
 import authStyles from "../../components/Auth/AuthShell.module.css";
 import { validateRegister } from "../../components/Auth/authValidation";
@@ -27,7 +28,7 @@ const initialTouched = {
 export default function Register() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { user, register } = useAuth();
+  const { user, register, resendCode, verifyCode } = useAuth();
   const { showToast } = useToast();
   const [formData, setFormData] = useState(initialValues);
   const [errors, setErrors] = useState(validateRegister(initialValues));
@@ -36,6 +37,7 @@ export default function Register() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [challenge, setChallenge] = useState(null);
 
   const isVisible = (field) => submitted || touched[field];
 
@@ -83,18 +85,19 @@ export default function Register() {
       return;
     }
 
-    const redirectPath =
-      location.state?.from?.pathname || (user?.role === "Admin" ? "/admin/dashboard" : "/");
-
     const submitRegister = async () => {
       try {
         setIsSubmitting(true);
-        const nextUser = await register({
+        const response = await register({
           name: formData.fullName.trim(),
           email: formData.email.trim(),
           password: formData.password,
         });
-        navigate(nextUser?.role === "Admin" ? "/admin/dashboard" : redirectPath, { replace: true });
+        setChallenge(response);
+        showToast({
+          variant: "success",
+          message: "Verification code sent to your email",
+        });
       } catch (error) {
         showToast({
           variant: "danger",
@@ -107,6 +110,59 @@ export default function Register() {
 
     submitRegister();
   };
+
+  const handleVerify = async (code) => {
+    try {
+      setIsSubmitting(true);
+      const nextUser = await verifyCode({
+        challengeToken: challenge.challengeToken,
+        code,
+      });
+      const redirectPath = location.state?.from?.pathname || "/";
+      navigate(nextUser?.role === "Admin" ? "/admin/dashboard" : redirectPath, {
+        replace: true,
+      });
+    } catch (error) {
+      showToast({
+        variant: "danger",
+        message: error.message || "Unable to verify the code",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleResend = async () => {
+    try {
+      const response = await resendCode({
+        challengeToken: challenge.challengeToken,
+      });
+      setChallenge(response);
+      showToast({ variant: "success", message: "A new code was sent" });
+      return response;
+    } catch (error) {
+      showToast({
+        variant: "danger",
+        message: error.message || "Unable to resend the code",
+      });
+      return null;
+    }
+  };
+
+  if (challenge) {
+    return (
+      <AuthShell title="Verify your email" subtitle="Confirm your email to create your account.">
+        <VerificationForm
+          email={challenge.email}
+          initialResendAfter={challenge.resendAfter}
+          isSubmitting={isSubmitting}
+          onBack={() => setChallenge(null)}
+          onResend={handleResend}
+          onVerify={handleVerify}
+        />
+      </AuthShell>
+    );
+  }
 
   return (
     <AuthShell title="Register">

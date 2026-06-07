@@ -13,6 +13,18 @@ export const authApi = {
       body: payload,
     });
   },
+  verifyCode(payload) {
+    return apiRequest("/api/auth/verify-code", {
+      method: "POST",
+      body: payload,
+    });
+  },
+  resendCode(payload) {
+    return apiRequest("/api/auth/resend-code", {
+      method: "POST",
+      body: payload,
+    });
+  },
   logout() {
     return apiRequest("/api/auth/logout", {
       method: "POST",

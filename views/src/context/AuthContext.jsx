@@ -49,13 +49,19 @@ export function AuthProvider({ children }) {
     refreshUser,
     async login(payload) {
       const response = await authApi.login(payload);
-      setUser(response.user || null);
-      return response.user || null;
+      return response;
     },
     async register(payload) {
       const response = await authApi.register(payload);
+      return response;
+    },
+    async verifyCode(payload) {
+      const response = await authApi.verifyCode(payload);
       setUser(response.user || null);
       return response.user || null;
+    },
+    async resendCode(payload) {
+      return authApi.resendCode(payload);
     },
     async logout() {
       await authApi.logout();

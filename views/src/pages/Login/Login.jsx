@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import AuthField from "../../components/Auth/AuthField";
 import AuthShell from "../../components/Auth/AuthShell";
+import VerificationForm from "../../components/Auth/VerificationForm";
 import Loader from "../../components/Loader/Loader";
 import authStyles from "../../components/Auth/AuthShell.module.css";
 import { validateLogin } from "../../components/Auth/authValidation";
@@ -21,7 +22,7 @@ const initialTouched = {
 export default function Login() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { user, login } = useAuth();
+  const { user, login, resendCode, verifyCode } = useAuth();
   const { showToast } = useToast();
   const [formData, setFormData] = useState(initialValues);
   const [errors, setErrors] = useState(validateLogin(initialValues));
@@ -29,6 +30,7 @@ export default function Login() {
   const [submitted, setSubmitted] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [challenge, setChallenge] = useState(null);
 
   const isVisible = (field) => submitted || touched[field];
 
@@ -70,17 +72,18 @@ export default function Login() {
       return;
     }
 
-    const redirectPath =
-      location.state?.from?.pathname || (user?.role === "Admin" ? "/admin/dashboard" : "/");
-
     const submitLogin = async () => {
       try {
         setIsSubmitting(true);
-        const nextUser = await login({
+        const response = await login({
           email: formData.email.trim(),
           password: formData.password,
         });
-        navigate(nextUser?.role === "Admin" ? "/admin/dashboard" : redirectPath, { replace: true });
+        setChallenge(response);
+        showToast({
+          variant: "success",
+          message: "Verification code sent to your email",
+        });
       } catch (error) {
         showToast({
           variant: "danger",
@@ -93,6 +96,59 @@ export default function Login() {
 
     submitLogin();
   };
+
+  const handleVerify = async (code) => {
+    try {
+      setIsSubmitting(true);
+      const nextUser = await verifyCode({
+        challengeToken: challenge.challengeToken,
+        code,
+      });
+      const redirectPath = location.state?.from?.pathname || "/";
+      navigate(nextUser?.role === "Admin" ? "/admin/dashboard" : redirectPath, {
+        replace: true,
+      });
+    } catch (error) {
+      showToast({
+        variant: "danger",
+        message: error.message || "Unable to verify the code",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleResend = async () => {
+    try {
+      const response = await resendCode({
+        challengeToken: challenge.challengeToken,
+      });
+      setChallenge(response);
+      showToast({ variant: "success", message: "A new code was sent" });
+      return response;
+    } catch (error) {
+      showToast({
+        variant: "danger",
+        message: error.message || "Unable to resend the code",
+      });
+      return null;
+    }
+  };
+
+  if (challenge) {
+    return (
+      <AuthShell title="Check your email" subtitle="One more step to secure your account.">
+        <VerificationForm
+          email={challenge.email}
+          initialResendAfter={challenge.resendAfter}
+          isSubmitting={isSubmitting}
+          onBack={() => setChallenge(null)}
+          onResend={handleResend}
+          onVerify={handleVerify}
+        />
+      </AuthShell>
+    );
+  }
 
   return (
     <AuthShell title="Login">
