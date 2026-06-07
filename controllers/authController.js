@@ -1,11 +1,16 @@
 const bcrypt = require("bcryptjs");
 const User = require("../models/User");
+const {
+  consumeAuthChallenge,
+  createAuthChallenge,
+  resendAuthChallenge,
+} = require("../utils/authCodes");
 const { buildSessionUser, syncSessionUser } = require("../utils/session");
 
 const defaultAdminSeed = {
-  name: process.env.SEED_ADMIN_NAME || "Admin",
-  email: (process.env.SEED_ADMIN_EMAIL || "admin@porsche.com").trim().toLowerCase(),
-  password: process.env.SEED_ADMIN_PASSWORD || "Admin123!",
+  name: process.env.SEED_ADMIN_NAME?.trim(),
+  email: process.env.SEED_ADMIN_EMAIL?.trim().toLowerCase(),
+  password: process.env.SEED_ADMIN_PASSWORD,
 };
 
 async function createSeedAdmin({ overwrite = false } = {}) {
@@ -48,26 +53,35 @@ const register = async (req, res) => {
       return res.status(400).json({ error: "Name, email, and password are required" });
     }
 
+    if (password.length < 8) {
+      return res.status(400).json({ error: "Password must be at least 8 characters" });
+    }
+
     const existing = await User.findOne({ email: email.trim().toLowerCase() });
     if (existing) {
       return res.status(400).json({ error: "Email already registered" });
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
-    const user = await User.create({
-      name: name.trim(),
+    const challenge = await createAuthChallenge({
       email: email.trim().toLowerCase(),
-      password: hashedPassword,
+      purpose: "register",
+      payload: {
+        name: name.trim(),
+        password: hashedPassword,
+      },
     });
 
-    const sessionUser = syncSessionUser(req, user);
-    res.status(201).json({ user: sessionUser });
+    res.status(202).json(challenge);
   } catch (err) {
     if (err.name === "ValidationError") {
       return res.status(400).json({ error: err.message });
     }
 
-    res.status(500).json({ error: err.message });
+    res.status(err.status || 500).json({
+      error: err.message,
+      retryAfter: err.retryAfter,
+    });
   }
 };
 
@@ -93,10 +107,104 @@ const login = async (req, res) => {
       return res.status(400).json({ error: "Invalid email or password" });
     }
 
-    const sessionUser = syncSessionUser(req, user);
-    res.json({ user: sessionUser });
+    const challenge = await createAuthChallenge({
+      email: user.email,
+      purpose: "login",
+      payload: { userId: user._id.toString() },
+    });
+
+    res.status(202).json(challenge);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(err.status || 500).json({
+      error: err.message,
+      retryAfter: err.retryAfter,
+    });
+  }
+};
+
+function regenerateSession(req) {
+  return new Promise((resolve, reject) => {
+    req.session.regenerate((error) => {
+      if (error) {
+        reject(error);
+        return;
+      }
+
+      resolve();
+    });
+  });
+}
+
+const verifyCode = async (req, res) => {
+  try {
+    const { challengeToken, code } = req.body;
+
+    if (!challengeToken || !code) {
+      return res.status(400).json({ error: "Verification code is required" });
+    }
+
+    const challenge = await consumeAuthChallenge(
+      challengeToken,
+      String(code).trim(),
+    );
+    let user;
+
+    if (challenge.purpose === "register") {
+      const existing = await User.findOne({ email: challenge.email });
+      if (existing) {
+        return res.status(409).json({ error: "Email already registered" });
+      }
+
+      user = await User.create({
+        name: challenge.payload.name,
+        email: challenge.email,
+        password: challenge.payload.password,
+      });
+    } else {
+      user = await User.findById(challenge.payload.userId);
+
+      if (!user) {
+        return res.status(401).json({ error: "Account no longer exists" });
+      }
+
+      if (user.status === "Inactive") {
+        return res.status(403).json({ error: "Account is inactive" });
+      }
+    }
+
+    await regenerateSession(req);
+    const sessionUser = syncSessionUser(req, user);
+    res.status(challenge.purpose === "register" ? 201 : 200).json({
+      user: sessionUser,
+    });
+  } catch (err) {
+    if (err.name === "ValidationError") {
+      return res.status(400).json({ error: err.message });
+    }
+
+    if (err.code === 11000) {
+      return res.status(409).json({ error: "Email already registered" });
+    }
+
+    res.status(err.status || 500).json({ error: err.message });
+  }
+};
+
+const resendCode = async (req, res) => {
+  try {
+    const { challengeToken } = req.body;
+
+    if (!challengeToken) {
+      return res.status(400).json({ error: "Verification request is required" });
+    }
+
+    const challenge = await resendAuthChallenge(challengeToken);
+    res.json(challenge);
+  } catch (err) {
+    res.status(err.status || 500).json({
+      error: err.message,
+      retryAfter: err.retryAfter,
+    });
   }
 };
 
@@ -202,6 +310,8 @@ const ensureSeedAdmin = async () => {
 module.exports = {
   register,
   login,
+  verifyCode,
+  resendCode,
   logout,
   getMe,
   updateProfile,
