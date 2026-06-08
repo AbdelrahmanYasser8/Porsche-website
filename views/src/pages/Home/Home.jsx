@@ -67,6 +67,10 @@ const gallerySlides = [
 const MotionSection = motion.section;
 const MotionDiv = motion.div;
 
+function buildShopSearchPath(modelName) {
+  return `/shop?search=${encodeURIComponent(modelName)}`;
+}
+
 export default function Home() {
   const [currentSlide, setCurrentSlide] = useState(0);
   const [slideDirection, setSlideDirection] = useState(1);
@@ -398,9 +402,9 @@ export default function Home() {
 
             <div className={styles.slideActionButtons}>
               <a
-                aria-label={`Explore the model ${displayedModel.name}`}
+                aria-label={`Explore the model ${displayedSlide.title}`}
                 className={styles.btnExploreSpecial}
-                href={displayedModel.exploreLink}
+                href={buildShopSearchPath(displayedSlide.title)}
               >
                 <span>Explore the model</span>
                 <svg aria-hidden="true" className={styles.btnArrowIcon} width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -546,7 +550,7 @@ export default function Home() {
               <span className={styles.specLabel}>Range (WLTP)</span>
             </div>
           </div>
-          <a href="/shop" className={styles.btnOutlineLight}>
+          <a href={buildShopSearchPath("Taycan")} className={styles.btnOutlineLight}>
             Explore Taycan Models
           </a>
         </div>
@@ -580,7 +584,7 @@ export default function Home() {
               <span className={styles.specLabelDark}>10% to 80% Charging</span>
             </div>
           </div>
-          <a href="/shop" className={styles.btnOutlineDark}>
+          <a href={buildShopSearchPath("Macan")} className={styles.btnOutlineDark}>
             Discover Macan Electric
           </a>
         </div>

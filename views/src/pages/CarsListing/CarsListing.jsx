@@ -49,6 +49,16 @@ export default function CarListing() {
   }, [location.pathname]);
 
   useEffect(() => {
+    const searchParams = new URLSearchParams(location.search);
+    const searchFromUrl = searchParams.get("search");
+
+    if (searchFromUrl !== null) {
+      setSearch(searchFromUrl);
+      setCurrentPage(1);
+    }
+  }, [location.search]);
+
+  useEffect(() => {
     let active = true;
 
     const loadCars = async () => {

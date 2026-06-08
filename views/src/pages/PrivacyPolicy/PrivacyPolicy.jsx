@@ -1,4 +1,7 @@
-import LegalPage from "../../components/Legal/LegalPage";
+import { Link } from "react-router-dom";
+import Navbar from "../../components/Navbar/Navbar";
+import Footer from "../../components/Footer/Footer";
+import styles from "./PrivacyPolicy.module.css";
 
 const sections = [
   {
@@ -61,21 +64,71 @@ const sections = [
 
 export default function PrivacyPolicy() {
   return (
-    <LegalPage
-      title="Privacy Policy"
-      intro="This policy explains how the site collects, uses, and protects information when you browse vehicles, create an account, save favorites, or submit a request."
-      updatedOn="May 26, 2026"
-      summaryTitle="Privacy at a glance"
-      summaryItems={[
-        "We collect account and browsing data to run the service.",
-        "Cookies and analytics help improve performance and usability.",
-        "You can update account details and manage browser settings.",
-        "We keep information only as long as it is needed for the service.",
-      ]}
-      relatedLabel="Read the Terms of Service"
-      relatedTo="/terms-of-service"
-      relatedText="For service rules and usage expectations, review the Terms of Service."
-      sections={sections}
-    />
+    <>
+      <Navbar />
+      <div className={styles.page}>
+        <main className={styles.content}>
+          <div className={styles.container}>
+            <section className={styles.hero}>
+              <div className={styles.heroBody}>
+                <p className={styles.eyebrow}>Legal</p>
+                <h1 className={styles.title}>Privacy Policy</h1>
+                <p className={styles.intro}>
+                  This policy explains how the site collects, uses, and protects information when you browse vehicles, create an account, save favorites, or submit a request.
+                </p>
+
+                <div className={styles.metaRow}>
+                  <span className={styles.metaPill}>Last updated: May 26, 2026</span>
+                  <Link className={styles.metaLink} to="/terms-of-service">
+                    Read the Terms of Service
+                  </Link>
+                  <Link className={styles.metaLink} to="/">
+                    Back to home
+                  </Link>
+                </div>
+              </div>
+
+              <aside className={styles.summaryCard} aria-label="Privacy Policy summary">
+                <h2 className={styles.summaryTitle}>Privacy at a glance</h2>
+                <ul className={styles.summaryList}>
+                  <li>We collect account and browsing data to run the service.</li>
+                  <li>Cookies and analytics help improve performance and usability.</li>
+                  <li>You can update account details and manage browser settings.</li>
+                  <li>We keep information only as long as it is needed for the service.</li>
+                </ul>
+              </aside>
+            </section>
+
+            <section className={styles.document}>
+              {sections.map((section) => (
+                <section className={styles.section} key={section.title}>
+                  <h2 className={styles.sectionTitle}>{section.title}</h2>
+                  {section.paragraphs.map((paragraph) => (
+                    <p className={styles.sectionText} key={paragraph}>
+                      {paragraph}
+                    </p>
+                  ))}
+                  {section.bullets?.length ? (
+                    <ul className={styles.sectionList}>
+                      {section.bullets.map((bullet) => (
+                        <li key={bullet}>{bullet}</li>
+                      ))}
+                    </ul>
+                  ) : null}
+                </section>
+              ))}
+
+              <div className={styles.footerNote}>
+                <p>For service rules and usage expectations, review the Terms of Service.</p>
+                <Link className={styles.footerLink} to="/terms-of-service">
+                  Read the Terms of Service
+                </Link>
+              </div>
+            </section>
+          </div>
+        </main>
+      </div>
+      <Footer />
+    </>
   );
 }

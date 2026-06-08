@@ -1,4 +1,7 @@
-import LegalPage from "../../components/Legal/LegalPage";
+import { Link } from "react-router-dom";
+import Navbar from "../../components/Navbar/Navbar";
+import Footer from "../../components/Footer/Footer";
+import styles from "./TermsOfService.module.css";
 
 const sections = [
   {
@@ -66,21 +69,71 @@ const sections = [
 
 export default function TermsOfService() {
   return (
-    <LegalPage
-      title="Terms of Service"
-      intro="These Terms describe the rules for using the site, creating an account, and interacting with the content and features provided in the app."
-      updatedOn="May 26, 2026"
-      summaryTitle="Terms at a glance"
-      summaryItems={[
-        "Use the service lawfully and keep your account secure.",
-        "Listings and specifications may change without notice.",
-        "Do not scrape, interfere with, or misuse the platform.",
-        "Third-party sites are governed by their own terms.",
-      ]}
-      relatedLabel="Read the Privacy Policy"
-      relatedTo="/privacy-policy"
-      relatedText="For details on data handling and cookies, review the Privacy Policy."
-      sections={sections}
-    />
+    <>
+      <Navbar />
+      <div className={styles.page}>
+        <main className={styles.content}>
+          <div className={styles.container}>
+            <section className={styles.hero}>
+              <div className={styles.heroBody}>
+                <p className={styles.eyebrow}>Legal</p>
+                <h1 className={styles.title}>Terms of Service</h1>
+                <p className={styles.intro}>
+                  These Terms describe the rules for using the site, creating an account, and interacting with the content and features provided in the app.
+                </p>
+
+                <div className={styles.metaRow}>
+                  <span className={styles.metaPill}>Last updated: May 26, 2026</span>
+                  <Link className={styles.metaLink} to="/privacy-policy">
+                    Read the Privacy Policy
+                  </Link>
+                  <Link className={styles.metaLink} to="/">
+                    Back to home
+                  </Link>
+                </div>
+              </div>
+
+              <aside className={styles.summaryCard} aria-label="Terms of Service summary">
+                <h2 className={styles.summaryTitle}>Terms at a glance</h2>
+                <ul className={styles.summaryList}>
+                  <li>Use the service lawfully and keep your account secure.</li>
+                  <li>Listings and specifications may change without notice.</li>
+                  <li>Do not scrape, interfere with, or misuse the platform.</li>
+                  <li>Third-party sites are governed by their own terms.</li>
+                </ul>
+              </aside>
+            </section>
+
+            <section className={styles.document}>
+              {sections.map((section) => (
+                <section className={styles.section} key={section.title}>
+                  <h2 className={styles.sectionTitle}>{section.title}</h2>
+                  {section.paragraphs.map((paragraph) => (
+                    <p className={styles.sectionText} key={paragraph}>
+                      {paragraph}
+                    </p>
+                  ))}
+                  {section.bullets?.length ? (
+                    <ul className={styles.sectionList}>
+                      {section.bullets.map((bullet) => (
+                        <li key={bullet}>{bullet}</li>
+                      ))}
+                    </ul>
+                  ) : null}
+                </section>
+              ))}
+
+              <div className={styles.footerNote}>
+                <p>For details on data handling and cookies, review the Privacy Policy.</p>
+                <Link className={styles.footerLink} to="/privacy-policy">
+                  Read the Privacy Policy
+                </Link>
+              </div>
+            </section>
+          </div>
+        </main>
+      </div>
+      <Footer />
+    </>
   );
 }
