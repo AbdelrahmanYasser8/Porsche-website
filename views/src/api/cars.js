@@ -23,6 +23,11 @@ export const carsApi = {
       body: file,
     });
   },
+  removeUploadedModel(fileId) {
+    return apiRequest(`/api/cars/model-assets/${encodeURIComponent(fileId)}`, {
+      method: "DELETE",
+    });
+  },
   update(id, payload) {
     return apiRequest(`/api/cars/${id}`, {
       method: "PUT",
@@ -32,11 +37,6 @@ export const carsApi = {
   remove(id) {
     return apiRequest(`/api/cars/${id}`, {
       method: "DELETE",
-    });
-  },
-  seed() {
-    return apiRequest("/api/cars/seed", {
-      method: "GET",
     });
   },
 };

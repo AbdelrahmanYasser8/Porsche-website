@@ -41,6 +41,27 @@ function uploadBufferToGridFs(buffer, { filename, contentType }) {
   });
 }
 
+async function deleteGridFsFile(fileId) {
+  if (!fileId) {
+    return false;
+  }
+
+  if (!ObjectId.isValid(fileId)) {
+    return false;
+  }
+
+  const bucket = getGridFsBucket();
+  const objectId = new ObjectId(fileId);
+  const files = await bucket.find({ _id: objectId }).toArray();
+
+  if (!files.length) {
+    return false;
+  }
+
+  await bucket.delete(objectId);
+  return true;
+}
+
 const getAll = async (req, res) => {
   try {
     const { category, search, year, maxPrice, status } = req.query;
@@ -121,6 +142,8 @@ const getModel = async (req, res) => {
     }
 
     res.setHeader("Content-Type", car.modelMimeType || file.contentType || "application/octet-stream");
+    res.setHeader("Cache-Control", "no-store, max-age=0, must-revalidate");
+    res.setHeader("Pragma", "no-cache");
     res.setHeader(
       "Content-Disposition",
       `inline; filename="${car.modelFileName || file.filename || "model.glb"}"`,
@@ -148,6 +171,10 @@ const uploadModel = async (req, res) => {
     }
 
     const filename = (req.headers["x-file-name"] || "model.glb").toString();
+    if (!filename.toLowerCase().endsWith(".glb")) {
+      return res.status(400).json({ error: "Only GLB model files are supported" });
+    }
+
     const contentType = (req.headers["content-type"] || "application/octet-stream").toString();
     const uploaded = await uploadBufferToGridFs(buffer, { filename, contentType });
 
@@ -156,6 +183,30 @@ const uploadModel = async (req, res) => {
       modelFileName: uploaded.filename,
       modelMimeType: uploaded.contentType,
     });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+const removeUploadedModel = async (req, res) => {
+  try {
+    const { fileId } = req.params;
+
+    if (!ObjectId.isValid(fileId)) {
+      return res.status(400).json({ error: "Invalid model file ID" });
+    }
+
+    const referencedCar = await Car.exists({ modelFileId: fileId });
+    if (referencedCar) {
+      return res.status(409).json({ error: "Model file is still attached to a car" });
+    }
+
+    const removed = await deleteGridFsFile(fileId);
+    if (!removed) {
+      return res.status(404).json({ error: "Model file not found" });
+    }
+
+    res.json({ message: "Model file deleted" });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -177,12 +228,24 @@ const create = async (req, res) => {
 
 const update = async (req, res) => {
   try {
+    const existingCar = await Car.findById(req.params.id);
+    if (!existingCar) return res.status(404).json({ error: 'Car not found' });
+
     const car = await Car.findByIdAndUpdate(
       req.params.id,
       normalizeCarInput(req.body),
       { new: true, runValidators: true },
     );
     if (!car) return res.status(404).json({ error: 'Car not found' });
+
+    if (existingCar.modelFileId && existingCar.modelFileId !== car.modelFileId) {
+      try {
+        await deleteGridFsFile(existingCar.modelFileId);
+      } catch (cleanupError) {
+        console.error("Failed to remove replaced model file:", cleanupError.message);
+      }
+    }
+
     res.json(serializeCar(car));
   } catch (err) {
     if (err.name === "ValidationError") {
@@ -195,46 +258,31 @@ const update = async (req, res) => {
 
 const remove = async (req, res) => {
   try {
-    const car = await Car.findByIdAndDelete(req.params.id);
+    const car = await Car.findById(req.params.id);
     if (!car) return res.status(404).json({ error: 'Car not found' });
+
+    const modelFileId = car.modelFileId;
+    await car.deleteOne();
+
+    try {
+      await deleteGridFsFile(modelFileId);
+    } catch (cleanupError) {
+      console.error("Failed to remove deleted car model file:", cleanupError.message);
+    }
+
     res.json({ message: 'Car deleted' });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 };
 
-const seed = async (req, res) => {
-  try {
-    const count = await Car.countDocuments();
-    if (count > 0) return res.json({ message: 'Cars already seeded' });
-
-    await Car.insertMany(seedData);
-    res.status(201).json({ message: 'Cars seeded', count: seedData.length });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
+module.exports = {
+  getAll,
+  getById,
+  getModel,
+  uploadModel,
+  removeUploadedModel,
+  create,
+  update,
+  remove,
 };
-
-const seedData = [
-  { name: "911 GT3 RS", category: "Sports", manufactureYear: 2026, price: 412000, fuelType: "Gasoline", seating: 2, horsepower: 518, topSpeed: 184, status: "In Stock" },
-  { name: "Taycan", category: "Electric", manufactureYear: 2025, price: 130000, fuelType: "Electric", seating: 4, horsepower: 402, topSpeed: 143, status: "In Stock" },
-  { name: "Macan", category: "SUV", manufactureYear: 2026, price: 90000, fuelType: "Gasoline", seating: 4, horsepower: 261, topSpeed: 144, status: "In Stock" },
-  { name: "911 Carrera", category: "Sedan", manufactureYear: 2026, price: 185000, fuelType: "Gasoline", seating: 2, horsepower: 388, topSpeed: 183, status: "In Stock" },
-  { name: "Taycan Turbo S", category: "Electric", manufactureYear: 2025, price: 280000, fuelType: "Electric", seating: 4, horsepower: 761, topSpeed: 205, status: "In Stock" },
-  { name: "Macan Electric", category: "SUV", manufactureYear: 2026, price: 90000, fuelType: "Electric", seating: 4, horsepower: 355, topSpeed: 137, status: "Out of Stock" },
-  { name: "Macan GTS", category: "SUV", manufactureYear: 2024, price: 135000, fuelType: "Gasoline", seating: 4, horsepower: 434, topSpeed: 169, status: "In Stock" },
-  { name: "Macan Turbo Electric", category: "SUV", manufactureYear: 2026, price: 155000, fuelType: "Electric", seating: 4, horsepower: 630, topSpeed: 162, status: "In Stock" },
-  { name: "911 Targa 4 GTS", category: "Sedan", manufactureYear: 2025, price: 330000, fuelType: "Gasoline", seating: 2, horsepower: 473, topSpeed: 192, status: "In Stock" },
-  { name: "911 Turbo S Cabriolet", category: "Sports", manufactureYear: 2026, price: 450000, fuelType: "Gasoline", seating: 2, horsepower: 640, topSpeed: 205, status: "In Stock" },
-].map((car) => ({
-  ...car,
-  make: "Porsche",
-  description: "",
-  colors: "Black, White",
-  wheels: ["Wheel Type 1"],
-  image: "",
-  thumbnailFileName: "",
-  modelFileName: "",
-}));
-
-module.exports = { getAll, getById, getModel, uploadModel, create, update, remove, seed };

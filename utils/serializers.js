@@ -76,8 +76,9 @@ function serializeCar(car) {
   const colorOptions = parseOptionList(doc.colors);
   const wheelOptions = parseOptionList(doc.wheels);
   const modelMimeType = doc.modelMimeType || "";
+  const modelVersion = doc.modelFileId || doc.updatedAt?.getTime?.() || doc.updatedAt || "";
   const modelUrl = doc.modelFileId
-    ? `/api/cars/${doc._id.toString()}/model`
+    ? `/api/cars/${doc._id.toString()}/model?v=${encodeURIComponent(modelVersion)}`
     : doc.modelDataUrl || "";
 
   return {
