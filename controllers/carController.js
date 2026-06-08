@@ -41,6 +41,27 @@ function uploadBufferToGridFs(buffer, { filename, contentType }) {
   });
 }
 
+async function deleteGridFsFile(fileId) {
+  if (!fileId) {
+    return false;
+  }
+
+  if (!ObjectId.isValid(fileId)) {
+    return false;
+  }
+
+  const bucket = getGridFsBucket();
+  const objectId = new ObjectId(fileId);
+  const files = await bucket.find({ _id: objectId }).toArray();
+
+  if (!files.length) {
+    return false;
+  }
+
+  await bucket.delete(objectId);
+  return true;
+}
+
 const getAll = async (req, res) => {
   try {
     const { category, search, year, maxPrice, status } = req.query;
@@ -121,6 +142,8 @@ const getModel = async (req, res) => {
     }
 
     res.setHeader("Content-Type", car.modelMimeType || file.contentType || "application/octet-stream");
+    res.setHeader("Cache-Control", "no-store, max-age=0, must-revalidate");
+    res.setHeader("Pragma", "no-cache");
     res.setHeader(
       "Content-Disposition",
       `inline; filename="${car.modelFileName || file.filename || "model.glb"}"`,
@@ -177,12 +200,24 @@ const create = async (req, res) => {
 
 const update = async (req, res) => {
   try {
+    const existingCar = await Car.findById(req.params.id);
+    if (!existingCar) return res.status(404).json({ error: 'Car not found' });
+
     const car = await Car.findByIdAndUpdate(
       req.params.id,
       normalizeCarInput(req.body),
       { new: true, runValidators: true },
     );
     if (!car) return res.status(404).json({ error: 'Car not found' });
+
+    if (existingCar.modelFileId && existingCar.modelFileId !== car.modelFileId) {
+      try {
+        await deleteGridFsFile(existingCar.modelFileId);
+      } catch (cleanupError) {
+        console.error("Failed to remove replaced model file:", cleanupError.message);
+      }
+    }
+
     res.json(serializeCar(car));
   } catch (err) {
     if (err.name === "ValidationError") {
@@ -195,8 +230,12 @@ const update = async (req, res) => {
 
 const remove = async (req, res) => {
   try {
-    const car = await Car.findByIdAndDelete(req.params.id);
+    const car = await Car.findById(req.params.id);
     if (!car) return res.status(404).json({ error: 'Car not found' });
+
+    await deleteGridFsFile(car.modelFileId);
+
+    await car.deleteOne();
     res.json({ message: 'Car deleted' });
   } catch (err) {
     res.status(500).json({ error: err.message });
