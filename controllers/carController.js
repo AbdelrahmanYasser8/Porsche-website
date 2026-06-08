@@ -171,6 +171,10 @@ const uploadModel = async (req, res) => {
     }
 
     const filename = (req.headers["x-file-name"] || "model.glb").toString();
+    if (!filename.toLowerCase().endsWith(".glb")) {
+      return res.status(400).json({ error: "Only GLB model files are supported" });
+    }
+
     const contentType = (req.headers["content-type"] || "application/octet-stream").toString();
     const uploaded = await uploadBufferToGridFs(buffer, { filename, contentType });
 
@@ -179,6 +183,30 @@ const uploadModel = async (req, res) => {
       modelFileName: uploaded.filename,
       modelMimeType: uploaded.contentType,
     });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+const removeUploadedModel = async (req, res) => {
+  try {
+    const { fileId } = req.params;
+
+    if (!ObjectId.isValid(fileId)) {
+      return res.status(400).json({ error: "Invalid model file ID" });
+    }
+
+    const referencedCar = await Car.exists({ modelFileId: fileId });
+    if (referencedCar) {
+      return res.status(409).json({ error: "Model file is still attached to a car" });
+    }
+
+    const removed = await deleteGridFsFile(fileId);
+    if (!removed) {
+      return res.status(404).json({ error: "Model file not found" });
+    }
+
+    res.json({ message: "Model file deleted" });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -233,13 +261,28 @@ const remove = async (req, res) => {
     const car = await Car.findById(req.params.id);
     if (!car) return res.status(404).json({ error: 'Car not found' });
 
-    await deleteGridFsFile(car.modelFileId);
-
+    const modelFileId = car.modelFileId;
     await car.deleteOne();
+
+    try {
+      await deleteGridFsFile(modelFileId);
+    } catch (cleanupError) {
+      console.error("Failed to remove deleted car model file:", cleanupError.message);
+    }
+
     res.json({ message: 'Car deleted' });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 };
 
-module.exports = { getAll, getById, getModel, uploadModel, create, update, remove };
+module.exports = {
+  getAll,
+  getById,
+  getModel,
+  uploadModel,
+  removeUploadedModel,
+  create,
+  update,
+  remove,
+};

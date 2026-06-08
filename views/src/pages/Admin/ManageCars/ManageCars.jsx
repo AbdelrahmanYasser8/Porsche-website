@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import Loader from "../../../components/Loader/Loader";
 import Pagination from "../../../components/Pagination/Pagination";
@@ -27,7 +27,10 @@ const emptyCarForm = {
   seating: '',
   modelFileName: '',
   modelFileId: '',
+  modelDataUrl: '',
+  modelMimeType: '',
   modelFile: null,
+  modelRemoved: false,
   status: 'In Stock',
 };
 
@@ -87,7 +90,10 @@ function toFormState(car) {
     seating: String(car.seating || ''),
     modelFileName: car.modelFileName || '',
     modelFileId: car.modelFileId || '',
+    modelDataUrl: car.modelDataUrl || '',
+    modelMimeType: car.modelMimeType || '',
     modelFile: null,
+    modelRemoved: false,
     status: car.status || 'In Stock',
   };
 }
@@ -152,7 +158,12 @@ function validateCarForm(values) {
     nextErrors.wheels = 'Choose at least one wheel type.';
   }
 
-  if (isBlank(values.modelFileId) && !values.modelFile) {
+  if (
+    isBlank(values.modelFileId)
+    && isBlank(values.modelDataUrl)
+    && !values.modelFile
+    && !values.modelRemoved
+  ) {
     nextErrors.modelFileName = '3D model file is required.';
   }
 
@@ -188,6 +199,7 @@ export default function ManageCars() {
   const [loading, setLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
+  const modelFileInputRef = useRef(null);
   const pageSize = 8;
 
   useEffect(() => {
@@ -334,7 +346,10 @@ export default function ManageCars() {
           ...formData,
           modelFileName: file?.name || formData.modelFileName,
           modelFileId: file ? '' : formData.modelFileId,
+          modelDataUrl: file ? '' : formData.modelDataUrl,
+          modelMimeType: file ? file.type : formData.modelMimeType,
           modelFile: file || null,
+          modelRemoved: file ? false : formData.modelRemoved,
         };
 
         setFormData(nextFormData);
@@ -393,6 +408,25 @@ export default function ManageCars() {
     });
 
     setFormTouched((current) => ({ ...current, wheels: true }));
+  };
+
+  const handleRemoveModel = () => {
+    const nextFormData = {
+      ...formData,
+      modelFileName: '',
+      modelFileId: '',
+      modelDataUrl: '',
+      modelMimeType: '',
+      modelFile: null,
+      modelRemoved: Boolean(editingCarId),
+    };
+
+    setFormData(nextFormData);
+    if (modelFileInputRef.current) {
+      modelFileInputRef.current.value = '';
+    }
+    setFormTouched((current) => ({ ...current, modelFileName: true }));
+    setFormErrors(validateCarForm(nextFormData));
   };
 
   const getError = (field) => getVisibleError(formSubmitted, formTouched, field, formErrors[field]);
@@ -460,17 +494,23 @@ export default function ManageCars() {
       seating: Number(formData.seating) || 0,
       modelFileName: formData.modelFileName,
       modelFileId: formData.modelFileId,
+      modelDataUrl: formData.modelDataUrl,
+      modelMimeType: formData.modelMimeType,
       status: formData.status,
       image: formData.thumbnailPreview || '',
     };
+
+    let uploadedModelId = '';
 
     try {
       setIsSaving(true);
 
       if (formData.modelFile) {
         const uploadedModel = await carsApi.uploadModel(formData.modelFile);
+        uploadedModelId = uploadedModel.modelFileId;
         normalizedCar.modelFileId = uploadedModel.modelFileId;
         normalizedCar.modelFileName = uploadedModel.modelFileName || normalizedCar.modelFileName;
+        normalizedCar.modelMimeType = uploadedModel.modelMimeType || normalizedCar.modelMimeType;
       }
 
       if (editingCarId) {
@@ -482,6 +522,14 @@ export default function ManageCars() {
       setReloadToken((current) => current + 1);
       closeDialog();
     } catch (error) {
+      if (uploadedModelId) {
+        try {
+          await carsApi.removeUploadedModel(uploadedModelId);
+        } catch {
+          // The upload may already be attached if the save response was interrupted.
+        }
+      }
+
       showToast({
         variant: 'danger',
         message: error.message || 'Unable to save car',
@@ -865,23 +913,41 @@ export default function ManageCars() {
                   {renderError('wheels')}
                 </fieldset>
 
-                <label className={`${styles.field} ${styles.fullWidth}`}>
+                <div className={`${styles.field} ${styles.fullWidth}`}>
                   <span>3D Model File</span>
                   <input
+                    ref={modelFileInputRef}
                     name="modelFile"
                     type="file"
-                    accept=".glb,.gltf,.obj,.fbx"
+                    accept=".glb,model/gltf-binary"
                     className={fieldErrorClass('modelFileName')}
                     onChange={handleFieldChange}
                     onBlur={handleFieldBlur}
                     aria-invalid={Boolean(getError('modelFileName'))}
                     aria-describedby={getErrorId('modelFileName')}
                   />
+                  <small className={styles.fileHint}>Upload a self-contained GLB file.</small>
                   {formData.modelFileName ? (
-                    <small className={styles.fileHint}>Selected: {formData.modelFileName}</small>
+                    <div className={styles.fileStatus}>
+                      <small className={styles.fileHint}>
+                        {formData.modelFile ? 'Selected' : 'Current'}: {formData.modelFileName}
+                      </small>
+                      <button
+                        className={styles.removeFileButton}
+                        type="button"
+                        onClick={handleRemoveModel}
+                      >
+                        <i className="fa-regular fa-trash-can"></i>
+                        Remove model
+                      </button>
+                    </div>
+                  ) : formData.modelRemoved ? (
+                    <small className={styles.removedFileHint}>
+                      The current 3D model will be removed when you save.
+                    </small>
                   ) : null}
                   {renderError('modelFileName')}
-                </label>
+                </div>
 
                 <label className={`${styles.stockCheck} ${styles.fullWidth}`}>
                   <input

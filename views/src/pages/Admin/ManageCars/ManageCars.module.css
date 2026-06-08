@@ -461,6 +461,36 @@
   font-weight: 700;
 }
 
+.fileStatus {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.removeFileButton {
+  border: 0;
+  background: transparent;
+  color: #b4232f;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 4px 0;
+  font: inherit;
+  font-size: 0.82rem;
+  font-weight: 800;
+}
+
+.removeFileButton:hover {
+  text-decoration: underline;
+}
+
+.removedFileHint {
+  color: #b4232f;
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
 .thumbnailPreview {
   width: fit-content;
   max-width: 100%;
