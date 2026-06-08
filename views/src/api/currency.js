@@ -1,6 +1,5 @@
 const FALLBACK_RATES = {
-  EUR: 0.86, GBP: 0.74, JPY: 160, AUD: 1.40, CAD: 1.39,
-  CHF: 0.79, CNY: 6.77,
+  EUR: 0.92, AUD: 1.50, JPY: 150, EGP: 48,
 };
 
 const API_URL = "https://open.er-api.com/v6/latest/USD";
@@ -23,9 +22,7 @@ function getCached() {
 function setCached(rates) {
   try {
     localStorage.setItem(CACHE_KEY, JSON.stringify({ rates, ts: Date.now() }));
-  } catch {
-    // Currency conversion still works with fallback rates if storage is unavailable.
-  }
+  } catch {}
 }
 
 export async function fetchExchangeRates() {
@@ -41,9 +38,7 @@ export async function fetchExchangeRates() {
         return data.rates;
       }
     }
-  } catch {
-    // Use bundled rates when the exchange-rate service is unavailable.
-  }
+  } catch {}
 
   return FALLBACK_RATES;
 }

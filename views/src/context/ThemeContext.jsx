@@ -8,9 +8,7 @@ function getInitialTheme() {
   try {
     const stored = localStorage.getItem(STORAGE_KEY);
     if (stored === "dark" || stored === "light") return stored;
-  } catch {
-    // localStorage not available
-  }
+  } catch {}
   return "light";
 }
 
@@ -21,9 +19,7 @@ export function ThemeProvider({ children }) {
     document.documentElement.setAttribute("data-theme", theme);
     try {
       localStorage.setItem(STORAGE_KEY, theme);
-    } catch {
-      // localStorage not available
-    }
+    } catch {}
   }, [theme]);
 
   const toggleTheme = () => {
